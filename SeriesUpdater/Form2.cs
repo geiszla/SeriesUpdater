@@ -139,6 +139,22 @@ namespace SeriesUpdater
                 }
             }
         }
+
+        private void nameTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                searchButton_Click(new object(), new EventArgs());
+            }
+        }
+
+        private void imdbIdTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                fillButton_Click(new object(), new EventArgs());
+            }
+        }
         #endregion
 
         #region Main functions
@@ -198,21 +214,5 @@ namespace SeriesUpdater
             base.WndProc(ref message);
         }
         #endregion
-
-        private void nameTextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                searchButton_Click(new object(), new EventArgs());
-            }
-        }
-
-        private void imdbIdTextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                fillButton_Click(new object(), new EventArgs());
-            }
-        }
     }
 }
