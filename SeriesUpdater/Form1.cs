@@ -9,33 +9,25 @@ using Microsoft.Win32;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Data;
 
 namespace SeriesUpdater
 {
     public partial class Form1 : Form
     {
-        #region Public variables
-        int lastDeactivateTick;
-        public static bool isAddFormOpened = false;
-        public static List<Series> seriesList = new List<Series>();
-        public static string dataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SeriesUpdater";
-        public static bool isFirst = isFirstCheck();
-        public static bool isAddedSeries = false;
-        #endregion
-
-        #region Initialization
         public Form1()
         {
             InitializeComponent();
         }
-        #endregion
 
         #region Form Events
         private void Form1_Load(object sender, EventArgs e)
         {
-            readSeries();
+            Variables.PublicVariables.isFirst = isFirstCheck();
 
-            if (isFirst)
+            IO.Input.readInput();
+
+            if (Variables.PublicVariables.isFirst)
             {
                 if (!IsStartupItem() && MessageBox.Show("Szeretné, hogy a program automatikusan elinduljon a Windows indításakor?", "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
@@ -43,7 +35,7 @@ namespace SeriesUpdater
                 }
             }
 
-            if (seriesList.Count > 0)
+            if (Variables.PublicVariables.seriesList.Count > 0)
             {
                 notifyIcon.ShowBalloonTip(3000);
             }
@@ -55,15 +47,15 @@ namespace SeriesUpdater
                 notifyIcon.ShowBalloonTip(3000);
             }
 
-            if (seriesList.Count > 0)
+            if (Variables.PublicVariables.seriesList.Count > 0)
             {
                 getLatestEps(false);
             }
 
-            applyData(false);
+            ControlManagement.ModifyControl.applyData(false);
             updateData(false);
 
-            if (seriesList.Count > 0)
+            if (Variables.PublicVariables.seriesList.Count > 0)
             {
                 notifyIcon.BalloonTipTitle = "Sikeres frissítés";
                 notifyIcon.BalloonTipText = "Sikeresen frissültek a legújabb epizódok. Most már megnyithatja a programot.";
@@ -75,7 +67,7 @@ namespace SeriesUpdater
 
         void notifyIcon_BalloonTipClicked(object sender, EventArgs e)
         {
-            placeForm(false);
+            ControlManagement.ModifyControl.placeForm(false);
             this.Show();
             this.Activate();
         }
@@ -87,9 +79,9 @@ namespace SeriesUpdater
 
         private void Form1_Deactivate(object sender, EventArgs e)
         {
-            if (!isAddFormOpened)
+            if (!Variables.PublicVariables.isAddFormOpened)
             {
-                lastDeactivateTick = Environment.TickCount;
+                Variables.PublicVariables.lastDeactivateTick = Environment.TickCount;
                 this.Hide();
             }
         }
@@ -101,7 +93,7 @@ namespace SeriesUpdater
 
         private void button1_Click(object sender, EventArgs e)
         {
-            isAddFormOpened = true;
+            Variables.PublicVariables.isAddFormOpened = true;
             Form2 addForm = new Form2();
             addForm.FormClosed += addForm_FormClosed;
             addForm.ShowDialog();
@@ -109,10 +101,10 @@ namespace SeriesUpdater
 
         private void addForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if (isAddedSeries)
+            if (Variables.PublicVariables.isAddedSeries)
             {
-                applyData(true);
-                placeForm(true);
+                ControlManagement.ModifyControl.applyData(true);
+                ControlManagement.ModifyControl.placeForm(true);
             }
         }
         #endregion
@@ -120,11 +112,11 @@ namespace SeriesUpdater
         #region NotifyIcon Events
         private void notifyIcon_MouseClick(object sender, MouseEventArgs e)
         {
-            placeForm(false);
+            ControlManagement.ModifyControl.placeForm(false);
 
             if (e.Button == MouseButtons.Left)
             {
-                if (Environment.TickCount - lastDeactivateTick > 250)
+                if (Environment.TickCount - Variables.PublicVariables.lastDeactivateTick > 250)
                 {
                     this.Show();
                     this.Activate();
@@ -133,8 +125,8 @@ namespace SeriesUpdater
         }
         #endregion
 
-        #region Context menu events
-        private void notifyIconContextMenu_MouseUp(object sender, MouseEventArgs e)
+        #region Contextmenu events
+        private void notifyIconControlManagementMenu_MouseUp(object sender, MouseEventArgs e)
         {
             notifyIconContextMenu.Hide();
         }
@@ -151,140 +143,23 @@ namespace SeriesUpdater
         #endregion
 
         #region Main functions
-        void placeForm(bool isFormClosed)
+        
+
+        public static void deleteImage_Click(object sender, EventArgs e)
         {
-            if (Cursor.Position.X + (this.Width / 2) <= Screen.PrimaryScreen.WorkingArea.Width - 10 && !isFormClosed)
+            if (MessageBox.Show("Biztosan törölni akarod ezt a sorozatot?", "Sorozat törlése", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                this.Left = Cursor.Position.X - (this.Width / 2);
-            }
+                Form thisForm = Application.OpenForms[0];
 
-            else
-            {
-                this.Left = Screen.PrimaryScreen.WorkingArea.Width - this.Width - 10;
-            }
+                PictureBox deleteImage = (PictureBox)sender;
+                int id = Convert.ToInt32(deleteImage.Name.Split('_')[1]);
+                Variables.PublicVariables.seriesList.Remove(Variables.PublicVariables.seriesList[id]);
+                thisForm.Controls.Remove(deleteImage);
 
-            this.Top = Screen.PrimaryScreen.WorkingArea.Height - this.Height - 10;
-        }
+                TableLayoutPanel seriesTable = (TableLayoutPanel)thisForm.Controls.Find("createSeriesTable", true)[0];
+                thisForm.Controls.Remove(seriesTable);
 
-        public static void readSeries()
-        {
-            if (File.Exists(dataPath + @"\series.dat"))
-            {
-                StreamReader readData = new StreamReader(dataPath + @"\series.dat");
-
-                int whileCount = 0;
-                while (readData.Peek() > -1)
-                {
-                    string[] currRow = readData.ReadLine().Split(';');
-
-                    if (currRow.Length > 1)
-                    {
-                        Series currSeries = new Series();
-                        currSeries.id = whileCount;
-                        currSeries.name = currRow[0];
-                        currSeries.englishName = currRow[1];
-                        currSeries.lastViewed = convertSeriesString(currRow[2]);
-                        currSeries.lastEpisode = convertSeriesString(currRow[3]);
-                        currSeries.nextEpisode = convertSeriesString(currRow[4]);
-                        currSeries.nextEpisodeAirDate = Convert.ToDateTime(currRow[5]);
-                        Form1.seriesList.Add(currSeries);
-                    }
-
-                    whileCount++;
-                }
-
-                readData.Close();
-            }
-        }
-
-        void applyData(bool isAdd)
-        {
-            if (seriesList.Count > 0)
-            {
-                seriesTable.Visible = true;
-            }
-
-            int forStart = 0;
-
-            if (isAdd)
-            {
-                forStart = seriesList.Count - 1;
-            }
-
-            else
-            {
-                forStart = 0;
-            }
-
-            for (int i = forStart; i < seriesList.Count; i++)
-            {
-                Label nameLabel = new Label();
-                nameLabel.Text = seriesList[i].name;
-                nameLabel.Name = "name_" + seriesList[i].id;
-                nameLabel.Width = nameLabel.PreferredWidth;
-                nameLabel.Anchor = AnchorStyles.Top;
-                nameLabel.AutoEllipsis = true;
-                nameLabel.MaximumSize = new System.Drawing.Size(150, 50);
-
-                Label lastViewedLabel = new Label();
-                lastViewedLabel.Text = "S" + seriesList[i].lastViewed[0] + "E" + seriesList[i].lastViewed[1];
-                lastViewedLabel.Name = "lastViewed_" + seriesList[i].id;
-                lastViewedLabel.Width = lastViewedLabel.PreferredWidth;
-                lastViewedLabel.Anchor = AnchorStyles.Top;
-                lastViewedLabel.MaximumSize = new System.Drawing.Size(150, 50);
-
-                Label lastEpLabel = new Label();
-                if (seriesList[i].lastEpisode != default(int[]))
-                {
-                    lastEpLabel.Text = "S" + seriesList[i].lastEpisode[0] + "E" + seriesList[i].lastEpisode[1];
-                }
-                else
-                {
-                    lastEpLabel.Text = "";
-                }
-                lastEpLabel.Name = "lastEp_" + seriesList[i].id;
-                lastEpLabel.Width = lastEpLabel.PreferredWidth;
-                lastEpLabel.Anchor = AnchorStyles.Top;
-                lastEpLabel.MaximumSize = new System.Drawing.Size(150, 50);
-
-                seriesTable.Controls.Add(nameLabel, 0, i + 1);
-                seriesTable.Controls.Add(lastViewedLabel, 1, i + 1);
-                seriesTable.Controls.Add(lastEpLabel, 2, i + 1);
-
-                if (seriesList[i].lastEpisode[0] > seriesList[i].lastViewed[0] || (seriesList[i].lastEpisode[0] == seriesList[i].lastViewed[0] && seriesList[i].lastEpisode[1] > seriesList[i].lastViewed[1]))
-                {
-
-                    lastEpLabel.Font = new Font(lastEpLabel.Font, FontStyle.Bold | FontStyle.Underline);
-                    lastEpLabel.Width = lastEpLabel.PreferredWidth;
-
-                    /*
-                    PictureBox newPicture = new PictureBox();
-                    newPicture.Name = "new_" + seriesList[i].id;
-                    newPicture.Image = SeriesUpdater.Properties.Resources.uj_másolat;
-                    newPicture.Anchor = (AnchorStyles.Top | AnchorStyles.Left);
-                    newPicture.Height = 10;
-                    newPicture.Width = 10;
-                    newPicture.Top = seriesTable.Top + lastEpLabel.Top + 1;
-                    newPicture.Left = seriesTable.Left + lastEpLabel.Left + lastEpLabel.Width + 2;
-
-                    Controls.Add(newPicture);
-                    newPicture.BringToFront();
-                     */
-                }
-
-                PictureBox deleteImage = new PictureBox();
-                deleteImage.Name = "delete_" + seriesList[i].id;
-                deleteImage.Image = SeriesUpdater.Properties.Resources.delete_icon_hi3;
-                deleteImage.Height = 10;
-                deleteImage.Width = 10;
-                deleteImage.Left = 5;
-                deleteImage.Cursor = Cursors.Hand;
-
-                var currRowLabel = this.Controls.Find("name_" + seriesList[i].id, true)[0];
-                deleteImage.Top = currRowLabel.Top + seriesTable.Top + 2;
-                deleteImage.Visible = false;
-
-                Controls.Add(deleteImage);
+                ControlManagement.ModifyControl.applyData(false);
             }
         }
 
@@ -292,10 +167,10 @@ namespace SeriesUpdater
         {
             if (updateLastEpisode)
             {
-                for (int i = 0; i < seriesList.Count; i++)
+                for (int i = 0; i < Variables.PublicVariables.seriesList.Count; i++)
                 {
                     Label currLabel = (Label)Controls.Find("lastEp_" + i, true)[0];
-                    currLabel.Text = "S" + seriesList[i].lastEpisode[0] + "E" + seriesList[i].lastEpisode[0];
+                    currLabel.Text = "S" + Variables.PublicVariables.seriesList[i].lastEpisode[0] + "E" + Variables.PublicVariables.seriesList[i].lastEpisode[0];
                 }
             }
         }
@@ -306,7 +181,7 @@ namespace SeriesUpdater
 
             if (isAdd)
             {
-                forStart = seriesList.Count - 1;
+                forStart = Variables.PublicVariables.seriesList.Count - 1;
             }
 
             else
@@ -314,10 +189,10 @@ namespace SeriesUpdater
                 forStart = 0;
             }
 
-            for (int i = 0; i < seriesList.Count; i++)
+            for (int i = 0; i < Variables.PublicVariables.seriesList.Count; i++)
             {
-                int id = Convert.ToInt32(seriesList[i].englishName);
-                seriesList[i].lastEpisode = getLatestEp(id, requestImdb(id, ""), true);
+                int id = Convert.ToInt32(Variables.PublicVariables.seriesList[i].imdbId);
+                Variables.PublicVariables.seriesList[i].lastEpisode = getLatestEp(id, WebRequests.Core.requestImdb(id, ""), true);
             }
         }
 
@@ -326,20 +201,20 @@ namespace SeriesUpdater
             List<Series> todaySeries = new List<Series>();
             List<Series> tomorrowSeries = new List<Series>();
 
-            for (int i = 0; i < seriesList.Count; i++)
+            for (int i = 0; i < Variables.PublicVariables.seriesList.Count; i++)
             {
-                int days = seriesList[i].nextEpisodeAirDate.DayOfYear - DateTime.Now.DayOfYear;
+                int days = Variables.PublicVariables.seriesList[i].nextEpisodeAirDate.DayOfYear - DateTime.Now.DayOfYear;
 
-                if (DateTime.Now.Year >= seriesList[i].nextEpisodeAirDate.Year)
+                if (DateTime.Now.Year >= Variables.PublicVariables.seriesList[i].nextEpisodeAirDate.Year)
                 {
                     if (days == 0)
                     {
-                        todaySeries.Add(seriesList[i]);
+                        todaySeries.Add(Variables.PublicVariables.seriesList[i]);
                     }
 
                     else if (days == 1)
                     {
-                        tomorrowSeries.Add(seriesList[i]);
+                        tomorrowSeries.Add(Variables.PublicVariables.seriesList[i]);
                     }
                 }
             }
@@ -359,15 +234,15 @@ namespace SeriesUpdater
 
             if (!IsStartupItem() || addAnyway)
             {
-                if (!File.Exists(dataPath + @"\SeriesUpdater.exe") && MessageBox.Show("Szeretné, ha a programról készülne egy másolat? Így a file törlése esetén is lehetséges a Windows indításakor való futtatás.", "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (!File.Exists(Variables.PublicVariables.dataPath + @"\MainProgram.exe") && MessageBox.Show("Szeretné, ha a programról készülne egy másolat? Így a file törlése esetén is lehetséges a Windows indításakor való futtatás.", "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    File.Copy(Application.ExecutablePath.ToString(), dataPath + @"\SeriesUpdater.exe");
-                    registryKey.SetValue("SeriesUpdater", dataPath + @"\SeriesUpdater.exe");
+                    File.Copy(MainProgram.ExecutablePath.ToString(), Variables.PublicVariables.dataPath + @"\MainProgram.exe");
+                    registryKey.SetValue("MainProgram", Variables.PublicVariables.dataPath + @"\MainProgram.exe");
                 }
 
                 else
                 {
-                    registryKey.SetValue("SeriesUpdater", Application.ExecutablePath.ToString());
+                    registryKey.SetValue("MainProgram", MainProgram.ExecutablePath.ToString());
                 }
 
                 autorunStripMenuItem.Checked = true;
@@ -375,7 +250,7 @@ namespace SeriesUpdater
 
             else
             {
-                registryKey.DeleteValue("SeriesUpdater", false);
+                registryKey.DeleteValue("MainProgram", false);
                 autorunStripMenuItem.Checked = false;
             }
         }
@@ -413,31 +288,6 @@ namespace SeriesUpdater
             }
         }
 
-        public static string requestImdb(int id, string seasonNumber)
-        {
-            string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes" + seasonNumber;
-
-            HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(url);
-            myRequest.Method = "GET";
-
-            try
-            {
-                WebResponse myResponse = myRequest.GetResponse();
-                StreamReader sr = new StreamReader(myResponse.GetResponseStream(), System.Text.Encoding.UTF8);
-                string HTMLText = sr.ReadToEnd();
-                sr.Close();
-                myResponse.Close();
-
-                return HTMLText;
-            }
-
-            catch
-            {
-                MessageBox.Show("Az azonosítás sikertelen volt. Nem megfelelő az IMDB azonosító, vagy nincs kapcsolat a szerverrel.", "Sikertelen azonosítás", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return "";
-            }
-        }
-
         public static int[] getLatestEp(int id, string HTMLText, bool isAdd)
         {
             if (HTMLText == "")
@@ -449,7 +299,7 @@ namespace SeriesUpdater
 
             if (seasonName == null)
             {
-                MessageBox.Show("Ennek a sorozatnak nincsenek részei, kérem válasszon egy másikat.", "Érvénytelen sorozat", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Ennek a sorozatnak nincsenek epizódjai. Kérem válasszon egy másikat!", "Érvénytelen sorozat", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return new int[] { 0, 0 };
             }
 
@@ -484,20 +334,20 @@ namespace SeriesUpdater
 
             if (isAdd)
             {
-                for (int i = 0; i < seriesList.Count; i++)
+                for (int i = 0; i < Variables.PublicVariables.seriesList.Count; i++)
                 {
-                    if (seriesList[i].englishName == id.ToString())
+                    if (Variables.PublicVariables.seriesList[i].imdbId == id)
                     {
                         if (nextAirDate == default(DateTime))
                         {
-                            seriesList[i].nextEpisodeAirDate = nextAirDate;
-                            seriesList[i].nextEpisode = new int[] { 0, 0 };
+                            Variables.PublicVariables.seriesList[i].nextEpisodeAirDate = nextAirDate;
+                            Variables.PublicVariables.seriesList[i].nextEpisode = new int[] { 0, 0 };
                         }
 
                         else
                         {
-                            seriesList[i].nextEpisodeAirDate = nextAirDate;
-                            seriesList[i].nextEpisode = getEpisodeByDateIndex(HTMLText, nextDateIndex);
+                            Variables.PublicVariables.seriesList[i].nextEpisodeAirDate = nextAirDate;
+                            Variables.PublicVariables.seriesList[i].nextEpisode = getEpisodeByDateIndex(HTMLText, nextDateIndex);
                         }
                     }
                 }
@@ -505,7 +355,7 @@ namespace SeriesUpdater
 
             if (latestAirDate == default(DateTime))
             {
-                return getLatestEp(id, requestImdb(id, previousSeasonNumber), false);
+                return getLatestEp(id, WebRequests.Core.requestImdb(id, previousSeasonNumber), false);
             }
 
             else
@@ -594,7 +444,7 @@ namespace SeriesUpdater
         {
             RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
 
-            if (registryKey.GetValue("SeriesUpdater") == null)
+            if (registryKey.GetValue("MainProgram") == null)
             {
                 autorunStripMenuItem.Checked = false;
                 return false;
@@ -609,7 +459,7 @@ namespace SeriesUpdater
 
         static bool isFirstCheck()
         {
-            if (Directory.Exists(dataPath))
+            if (Directory.Exists(Variables.PublicVariables.dataPath))
             {
                 return false;
             }
@@ -628,11 +478,22 @@ namespace SeriesUpdater
     {
         public int id;
         public string name;
-        public string englishName;
+        public int imdbId;
         public int[] lastViewed;
         public int[] lastEpisode;
         public int[] nextEpisode;
         public DateTime nextEpisodeAirDate;
+
+        public Series(int id, string name, int imdbId, int[] lastViewed, int[] lastEpisode, int[] nextEpisode, DateTime nextEpisodeAirDate)
+        {
+            this.id = id;
+            this.name = name;
+            this.imdbId = imdbId;
+            this.lastViewed = lastViewed;
+            this.lastEpisode = lastEpisode;
+            this.nextEpisode = nextEpisode;
+            this.nextEpisodeAirDate = nextEpisodeAirDate;
+        }
     }
     #endregion
 }

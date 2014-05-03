@@ -10,26 +10,19 @@ namespace SeriesUpdater
 {
     public partial class Form3 : Form
     {
-        #region Public variables
-        public static List<ResultSeries> resultSeriesList = new List<ResultSeries>();
-        public static string inputName = "";
-        #endregion
-
-        #region Initialization
         public Form3()
         {
             InitializeComponent();
         }
-        #endregion
 
         #region Events
         private void Form3_Load(object sender, EventArgs e)
         {
             this.Visible = false;
 
-            if (Form2.searchQuery != "")
+            if (Variables.PublicVariables.searchQuery != "")
             {
-                searchBox.Text = Form2.searchQuery;
+                searchBox.Text = Variables.PublicVariables.searchQuery;
                 startSearch();
             }
 
@@ -38,17 +31,31 @@ namespace SeriesUpdater
 
         private void searchButton_Click(object sender, EventArgs e)
         {
-            startSearch();
+            if (searchBox.Text == "")
+            {
+                MessageBox.Show("A kereséshez kérem adjon meg egy kulcsszót!", "Üres mező", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            else
+            {
+                startSearch();
+            }
         }
 
         private void selectButton_Click(object sender, EventArgs e)
         {
             Cursor.Current = Cursors.WaitCursor;
-            Form2.selectedSeries[0] = resultTable.SelectedRows[0].Cells[0].Value.ToString();
-            Form2.selectedSeries[1] = resultTable.SelectedRows[0].Cells[1].Value.ToString();
+            Variables.PublicVariables.selectedSeries[0] = resultTable.SelectedRows[0].Cells[0].Value.ToString();
+            Variables.PublicVariables.selectedSeries[1] = resultTable.SelectedRows[0].Cells[1].Value.ToString();
 
-            Form2.isSelectedSeries = true;
-            this.Close();
+            int id = Convert.ToInt32(resultTable.SelectedRows[0].Cells[0].Value);
+            Variables.PublicVariables.selectedLastEpisodes = Form1.getLatestEp(id, WebRequests.Core.requestImdb(id, ""), false);
+
+            if (Variables.PublicVariables.selectedLastEpisodes[0] != 0)
+            {
+                Variables.PublicVariables.isSelectedSeries = true;
+                this.Close();
+            }
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
@@ -60,16 +67,25 @@ namespace SeriesUpdater
         #region Main functions
         void startSearch()
         {
-            resultSeriesList.Clear();
+            Variables.PublicVariables.resultSeriesList.Clear();
             Cursor.Current = Cursors.WaitCursor;
 
             searchForSeries(searchBox.Text);
             DataTable seriesTable = CreateTable();
-            resultTable.DataSource = seriesTable;
 
-            for (int i = 0; i < resultTable.Columns.Count; i++)
+            if (seriesTable.Rows.Count == 0)
             {
-                resultTable.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                MessageBox.Show("Nincs találat. Kérem próbálja újra más kulcsszóval!", "Nincs találat", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            else
+            {
+                resultTable.DataSource = seriesTable;
+
+                for (int i = 0; i < resultTable.Columns.Count; i++)
+                {
+                    resultTable.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                }
             }
 
             Cursor.Current = Cursors.Arrow;
@@ -102,7 +118,7 @@ namespace SeriesUpdater
                 Match typeMatch = Regex.Match(innerHTML, @"\(([a-z| |-]*)\)", RegexOptions.IgnoreCase);
                 currResult.type = typeMatch.Groups[1].Value;
 
-                if (currResult.type == "TV Movie")
+                if (currResult.type == "TV Movie" || currResult.type == "TV Short")
                 {
                     i--;
                 }
@@ -121,7 +137,7 @@ namespace SeriesUpdater
                     Match yearMatch = Regex.Match(innerHTML, @"> \(([0-9]*)\)", RegexOptions.IgnoreCase);
                     currResult.startYear = yearMatch.Groups[1].Value;
 
-                    resultSeriesList.Add(currResult);
+                    Variables.PublicVariables.resultSeriesList.Add(currResult);
                 }
 
                 startIndex = Convert.ToInt32(Form1.getInnerHTMLByClassOrId(startIndex, HTMLText, "result_text", "class")[1]);
@@ -137,14 +153,36 @@ namespace SeriesUpdater
             seriesTable.Columns.Add("Év", typeof(string));
             seriesTable.Columns.Add("Típus", typeof(string));
 
-            for (int i = 0; i < resultSeriesList.Count; i++)
+            for (int i = 0; i < Variables.PublicVariables.resultSeriesList.Count; i++)
             {
+                List<ResultSeries> resultSeriesList = Variables.PublicVariables.resultSeriesList;
                 seriesTable.Rows.Add(resultSeriesList[i].id, resultSeriesList[i].name, resultSeriesList[i].aka, resultSeriesList[i].startYear, resultSeriesList[i].type);
             }
 
             return seriesTable;
         }
         #endregion
+
+        private void searchBox_TextChanged(object sender, EventArgs e)
+        {
+            if (searchBox.Text == "")
+            {
+                searchButton.Enabled = false;
+            }
+
+            else
+            {
+                searchButton.Enabled = true;
+            }
+        }
+
+        private void searchBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                searchButton_Click(new Object(), new EventArgs());
+            }
+        }
     }
 
     #region Classes

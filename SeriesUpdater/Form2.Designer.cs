@@ -28,10 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.acceptAddButton = new System.Windows.Forms.Button();
+            this.addButton = new System.Windows.Forms.Button();
             this.nameLabel = new System.Windows.Forms.Label();
             this.nameTextBox = new System.Windows.Forms.TextBox();
-            this.englishNameLabel = new System.Windows.Forms.Label();
+            this.ImdbIdLabel = new System.Windows.Forms.Label();
             this.imdbIdTextBox = new System.Windows.Forms.TextBox();
             this.cancelButton = new System.Windows.Forms.Button();
             this.lastViewedEpisodeLabel = new System.Windows.Forms.Label();
@@ -40,15 +40,16 @@
             this.searchButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // acceptAddButton
+            // addButton
             // 
-            this.acceptAddButton.Location = new System.Drawing.Point(160, 105);
-            this.acceptAddButton.Name = "acceptAddButton";
-            this.acceptAddButton.Size = new System.Drawing.Size(75, 23);
-            this.acceptAddButton.TabIndex = 7;
-            this.acceptAddButton.Text = "Hozzáadás";
-            this.acceptAddButton.UseVisualStyleBackColor = true;
-            this.acceptAddButton.Click += new System.EventHandler(this.acceptAddButton_Click);
+            this.addButton.Enabled = false;
+            this.addButton.Location = new System.Drawing.Point(160, 105);
+            this.addButton.Name = "addButton";
+            this.addButton.Size = new System.Drawing.Size(75, 23);
+            this.addButton.TabIndex = 7;
+            this.addButton.Text = "Hozzáadás";
+            this.addButton.UseVisualStyleBackColor = true;
+            this.addButton.Click += new System.EventHandler(this.acceptAddButton_Click);
             // 
             // nameLabel
             // 
@@ -65,16 +66,17 @@
             this.nameTextBox.Name = "nameTextBox";
             this.nameTextBox.Size = new System.Drawing.Size(190, 20);
             this.nameTextBox.TabIndex = 1;
+            this.nameTextBox.TextChanged += new System.EventHandler(this.nameTextBox_TextChanged);
             this.nameTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.nameTextBox_KeyDown);
             // 
-            // englishNameLabel
+            // ImdbIdLabel
             // 
-            this.englishNameLabel.AutoSize = true;
-            this.englishNameLabel.Location = new System.Drawing.Point(13, 45);
-            this.englishNameLabel.Name = "englishNameLabel";
-            this.englishNameLabel.Size = new System.Drawing.Size(51, 13);
-            this.englishNameLabel.TabIndex = 3;
-            this.englishNameLabel.Text = "IMDB ID:";
+            this.ImdbIdLabel.AutoSize = true;
+            this.ImdbIdLabel.Location = new System.Drawing.Point(13, 45);
+            this.ImdbIdLabel.Name = "ImdbIdLabel";
+            this.ImdbIdLabel.Size = new System.Drawing.Size(51, 13);
+            this.ImdbIdLabel.TabIndex = 3;
+            this.ImdbIdLabel.Text = "IMDB ID:";
             // 
             // imdbIdTextBox
             // 
@@ -82,6 +84,7 @@
             this.imdbIdTextBox.Name = "imdbIdTextBox";
             this.imdbIdTextBox.Size = new System.Drawing.Size(169, 20);
             this.imdbIdTextBox.TabIndex = 3;
+            this.imdbIdTextBox.TextChanged += new System.EventHandler(this.imdbIdTextBox_TextChanged);
             this.imdbIdTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.imdbIdTextBox_KeyDown);
             // 
             // cancelButton
@@ -109,9 +112,11 @@
             this.lastViewedEpisodeTextBox.Name = "lastViewedEpisodeTextBox";
             this.lastViewedEpisodeTextBox.Size = new System.Drawing.Size(62, 20);
             this.lastViewedEpisodeTextBox.TabIndex = 5;
+            this.lastViewedEpisodeTextBox.TextChanged += new System.EventHandler(this.lastViewedEpisodeTextBox_TextChanged);
             // 
             // fillButton
             // 
+            this.fillButton.Enabled = false;
             this.fillButton.Image = global::SeriesUpdater.Properties.Resources.check;
             this.fillButton.Location = new System.Drawing.Point(245, 40);
             this.fillButton.Name = "fillButton";
@@ -144,10 +149,10 @@
             this.Controls.Add(this.lastViewedEpisodeLabel);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.imdbIdTextBox);
-            this.Controls.Add(this.englishNameLabel);
+            this.Controls.Add(this.ImdbIdLabel);
             this.Controls.Add(this.nameTextBox);
             this.Controls.Add(this.nameLabel);
-            this.Controls.Add(this.acceptAddButton);
+            this.Controls.Add(this.addButton);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.Name = "Form2";
             this.ShowInTaskbar = false;
@@ -162,10 +167,10 @@
 
         #endregion
 
-        private System.Windows.Forms.Button acceptAddButton;
+        private System.Windows.Forms.Button addButton;
         private System.Windows.Forms.Label nameLabel;
         private System.Windows.Forms.TextBox nameTextBox;
-        private System.Windows.Forms.Label englishNameLabel;
+        private System.Windows.Forms.Label ImdbIdLabel;
         private System.Windows.Forms.TextBox imdbIdTextBox;
         private System.Windows.Forms.Button cancelButton;
         private System.Windows.Forms.Label lastViewedEpisodeLabel;

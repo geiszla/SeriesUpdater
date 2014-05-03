@@ -42,9 +42,12 @@
             this.searchBox.Name = "searchBox";
             this.searchBox.Size = new System.Drawing.Size(179, 20);
             this.searchBox.TabIndex = 0;
+            this.searchBox.TextChanged += new System.EventHandler(this.searchBox_TextChanged);
+            this.searchBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.searchBox_KeyDown);
             // 
             // searchButton
             // 
+            this.searchButton.Enabled = false;
             this.searchButton.Location = new System.Drawing.Point(197, 10);
             this.searchButton.Name = "searchButton";
             this.searchButton.Size = new System.Drawing.Size(75, 23);
@@ -97,7 +100,6 @@
             // 
             // Form3
             // 
-            this.AcceptButton = this.searchButton;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
