@@ -15,6 +15,7 @@ namespace SeriesUpdater.MainProgram
         public static string dataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SeriesUpdater";
         public static bool isFirst = Context.Settings.isFirstCheck();
         public static bool isAddedSeries = false;
+        public static bool keyDownFired = false;
 
         public static string[] selectedSeries = new string[2];
         public static int[] selectedLastEpisodes = new int[2];

@@ -20,6 +20,18 @@ namespace SeriesUpdater.Context
             return newLabel;
         }
 
+        public static TextBox createTextBox(string name, string text)
+        {
+            TextBox newTextBox = new TextBox();
+            newTextBox.Anchor = AnchorStyles.Top;
+            newTextBox.Margin = new Padding(3, 0, 3, 10);
+            newTextBox.Name = name;
+            newTextBox.Text = text;
+            newTextBox.Size = newTextBox.PreferredSize;
+
+            return newTextBox;
+        }
+
         public static TableLayoutPanel createTableLayoutPanel(params Label[] headers)
         {
             TableLayoutPanel newTable = new TableLayoutPanel();
@@ -32,7 +44,7 @@ namespace SeriesUpdater.Context
             }
 
             newTable.Location = new Point(15, 47);
-            newTable.Name = "createSeriesTable";
+            newTable.Name = "seriesTable";
 
             return newTable;
         }
