@@ -44,7 +44,7 @@ namespace SeriesUpdater
             MainProgram.Variables.selectedSeries[0] = resultTable.SelectedRows[0].Cells[0].Value.ToString();
             MainProgram.Variables.selectedSeries[1] = resultTable.SelectedRows[0].Cells[1].Value.ToString();
 
-            int id = Convert.ToInt32(resultTable.SelectedRows[0].Cells[0].Value);
+            string id = resultTable.SelectedRows[0].Cells[0].Value.ToString();
             string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes";
             MainProgram.Variables.selectedLastEpisodes = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url), false);
 
@@ -114,7 +114,7 @@ namespace SeriesUpdater
     #region Classes
     public class ResultSeries
     {
-        public int id;
+        public string id;
         public string name;
         public string aka;
         public string startYear;

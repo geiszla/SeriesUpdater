@@ -47,7 +47,7 @@ namespace SeriesUpdater.MainProgram
 
             for (int i = 0; i < MainProgram.Variables.seriesList.Count; i++)
             {
-                int id = Convert.ToInt32(MainProgram.Variables.seriesList[i].imdbId);
+                string id = MainProgram.Variables.seriesList[i].imdbId;
                 string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes";
                 MainProgram.Variables.seriesList[i].lastEpisode = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url), true);
             }
@@ -80,7 +80,7 @@ namespace SeriesUpdater.MainProgram
                 else
                 {
                     Match idMatch = Regex.Match(innerHTML, @"/title/tt(.*)\/\?", RegexOptions.IgnoreCase);
-                    currResult.id = Convert.ToInt32(idMatch.Groups[1].Value);
+                    currResult.id = idMatch.Groups[1].Value;
 
                     Match nameMatch = Regex.Match(innerHTML, "<(a href=)+.*>(.*)</a", RegexOptions.IgnoreCase);
                     currResult.name = nameMatch.Groups[2].Value;

@@ -14,6 +14,7 @@ namespace SeriesUpdater
             MainProgram.Variables.mainForm = this;
 
             autorunStripMenuItem.Checked = Context.Settings.isStartupItem();
+            WireAllControls(this);
         }
 
         #region Form Events
@@ -96,6 +97,7 @@ namespace SeriesUpdater
 
         private void deleteImage_Click(object sender, EventArgs e)
         {
+            this.Deactivate -= Form1_Deactivate;
             if (MessageBox.Show("Biztosan törölni akarod ezt a sorozatot?", "Sorozat törlése", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 PictureBox deleteImage = (PictureBox)sender;
@@ -103,12 +105,14 @@ namespace SeriesUpdater
                 MainProgram.Variables.seriesList.Remove(MainProgram.Variables.seriesList[id]);
                 Controls.Remove(Controls.Find("delete_" + (MainProgram.Variables.seriesList.Count), true)[0]);
 
-                TableLayoutPanel seriesTable = (TableLayoutPanel)Controls.Find("createSeriesTable", true)[0];
+                TableLayoutPanel seriesTable = (TableLayoutPanel)Controls.Find("seriesTable", true)[0];
                 Controls.Remove(seriesTable);
 
                 applyData(false);
                 Context.IO.writeSeries();
             }
+
+            this.Deactivate += Form1_Deactivate;
         }
         #endregion
 
@@ -165,13 +169,12 @@ namespace SeriesUpdater
         {
             if (MainProgram.Variables.seriesList.Count > 0)
             {
-                try
+                if (Controls.Find("seriesTable", true).Length != 0 && !isAdd)
                 {
                     TableLayoutPanel oldTable = (TableLayoutPanel)Controls.Find("seriesTable", true)[0];
                     oldTable.Controls.Clear();
                     oldTable.RowStyles.Clear();
                 }
-                catch { }
 
                 Label nameHeaderLabel = Context.Controls.createLabel("nameHeaderLabel", "Név", true);
                 Label lastViewedHeaderLabel = Context.Controls.createLabel("lastViewedHeaderLabel", "Legutóbb megtekintett", true);
@@ -277,6 +280,7 @@ namespace SeriesUpdater
                 seriesTable.Controls.Add(newLabel, 1, id + 1);
 
                 MainProgram.Variables.seriesList[id].lastViewed = MainProgram.ProcessData.convertEpisodeString(text);
+                Context.IO.writeSeries();
 
                 Control currLastEpLabel = Controls.Find("lastEp_" + id, true)[0];
                 if (MainProgram.Variables.seriesList[id].lastEpisode[0] > MainProgram.Variables.seriesList[id].lastViewed[0] || (MainProgram.Variables.seriesList[id].lastEpisode[0] == MainProgram.Variables.seriesList[id].lastViewed[0] && MainProgram.Variables.seriesList[id].lastEpisode[1] > MainProgram.Variables.seriesList[id].lastViewed[1]))
@@ -338,6 +342,24 @@ namespace SeriesUpdater
             }
         }
 
+        private void WireAllControls(Control control)
+        {
+            foreach (Control currControl in control.Controls)
+            {
+                currControl.Click += constrols_Click;
+                if (currControl.HasChildren)
+                {
+                    WireAllControls(currControl);
+                }
+            }
+        }
+
+        private void constrols_Click(object sender, EventArgs e)
+        {
+            this.InvokeOnClick(this, EventArgs.Empty);
+            MessageBox.Show("a");
+        }
+
         protected override void WndProc(ref Message message)
         {
             const int WM_NCHITTEST = 0x0084;
@@ -355,13 +377,13 @@ namespace SeriesUpdater
     {
         public int id;
         public string name;
-        public int imdbId;
+        public string imdbId;
         public int[] lastViewed;
         public int[] lastEpisode;
         public int[] nextEpisode;
         public DateTime nextEpisodeAirDate;
 
-        public Series(int id, string name, int imdbId, int[] lastViewed, int[] lastEpisode, int[] nextEpisode, DateTime nextEpisodeAirDate)
+        public Series(int id, string name, string imdbId, int[] lastViewed, int[] lastEpisode, int[] nextEpisode, DateTime nextEpisodeAirDate)
         {
             this.id = id;
             this.name = name;

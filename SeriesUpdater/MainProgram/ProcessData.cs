@@ -29,7 +29,7 @@ namespace SeriesUpdater.MainProgram
         public static DataTable createTable()
         {
             DataTable seriesTable = new DataTable();
-            seriesTable.Columns.Add("IMDB id", typeof(int));
+            seriesTable.Columns.Add("IMDB id", typeof(string));
             seriesTable.Columns.Add("Név", typeof(string));
             seriesTable.Columns.Add("Másképpen", typeof(string));
             seriesTable.Columns.Add("Év", typeof(string));

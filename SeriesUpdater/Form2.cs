@@ -101,7 +101,7 @@ namespace SeriesUpdater
                 Cursor.Current = Cursors.WaitCursor;
                 string url = "http://www.imdb.com/title/" + "tt" + Convert.ToInt32(imdbIdTextBox.Text) + "/episodes";
                 string HTMLText = MainProgram.WebRequest.requestPage(url);
-                int[] latestEp = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(Convert.ToInt32(imdbIdTextBox.Text), HTMLText, false);
+                int[] latestEp = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(imdbIdTextBox.Text, HTMLText, false);
 
                 if (HTMLText != "")
                 {
@@ -120,8 +120,6 @@ namespace SeriesUpdater
         {
             if (MainProgram.Variables.isSelectedSeries)
             {
-                int id = Convert.ToInt32(MainProgram.Variables.selectedSeries[0]);
-
                 imdbIdTextBox.Text = MainProgram.Variables.selectedSeries[0];
                 nameTextBox.Text = MainProgram.Variables.selectedSeries[1];
                 lastViewedEpisodeTextBox.Text = "S" + MainProgram.Variables.selectedLastEpisodes[0] + "E" + MainProgram.Variables.selectedLastEpisodes[1];
@@ -165,7 +163,7 @@ namespace SeriesUpdater
         {
             Cursor.Current = Cursors.WaitCursor;
 
-            Series newSeries = new Series(MainProgram.Variables.seriesList.Count, nameTextBox.Text, Convert.ToInt32(imdbIdTextBox.Text), MainProgram.ProcessData.convertEpisodeString(lastViewedEpisodeTextBox.Text), new int[2], new int[2], new DateTime());
+            Series newSeries = new Series(MainProgram.Variables.seriesList.Count, nameTextBox.Text, imdbIdTextBox.Text, MainProgram.ProcessData.convertEpisodeString(lastViewedEpisodeTextBox.Text), new int[2], new int[2], new DateTime());
             MainProgram.Variables.seriesList.Add(newSeries);
 
             MainProgram.WebRequest.getLatestEpisodes(true);
@@ -180,7 +178,7 @@ namespace SeriesUpdater
                 Directory.CreateDirectory(MainProgram.Variables.dataPath);
             }
 
-            Context.IO.writeSeries(newSeries.name, Convert.ToInt32(newSeries.imdbId));
+            Context.IO.writeSeries(newSeries.name, newSeries.imdbId);
 
             Cursor.Current = Cursors.Arrow;
             MainProgram.Variables.isAddedSeries = true;

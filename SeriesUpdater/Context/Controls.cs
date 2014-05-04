@@ -15,7 +15,7 @@ namespace SeriesUpdater.Context
             newLabel.Margin = new Padding(3, 0, 3, 10);
             newLabel.Name = name;
             newLabel.Text = text;
-            newLabel.MaximumSize = new System.Drawing.Size(150, 50);
+            newLabel.MaximumSize = new System.Drawing.Size(150, 23);
 
             return newLabel;
         }

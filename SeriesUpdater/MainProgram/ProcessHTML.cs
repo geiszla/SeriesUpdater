@@ -51,7 +51,7 @@ namespace SeriesUpdater.MainProgram
             return name;
         }
 
-        public static int[] getLatestEpisodeFromHTML(int id, string HTMLText, bool isAdd)
+        public static int[] getLatestEpisodeFromHTML(string id, string HTMLText, bool isAdd)
         {
             if (HTMLText == "")
             {
@@ -78,7 +78,16 @@ namespace SeriesUpdater.MainProgram
             while ((innerHTML = MainProgram.ProcessHTML.getInnerHTMLByClassOrId(startIndex, HTMLText, "airdate", "class")[0]) != default(string))
             {
                 int endIndex = Convert.ToInt32(MainProgram.ProcessHTML.getInnerHTMLByClassOrId(startIndex, HTMLText, "airdate", "class")[1]);
-                DateTime airDate = Convert.ToDateTime(innerHTML);
+                DateTime airDate = new DateTime();
+                try
+                {
+                    airDate = Convert.ToDateTime(innerHTML);
+                }
+                catch
+                {
+                    airDate = Convert.ToDateTime(innerHTML.Split('\n')[1] + ".12.31");
+                }
+
                 if (airDate < DateTime.Now)
                 {
                     latestAirDate = airDate;
@@ -99,7 +108,7 @@ namespace SeriesUpdater.MainProgram
             {
                 for (int i = 0; i < MainProgram.Variables.seriesList.Count; i++)
                 {
-                    if (MainProgram.Variables.seriesList[i].imdbId == id)
+                    if (MainProgram.Variables.seriesList[i].imdbId == Convert.ToString(id))
                     {
                         if (nextAirDate == default(DateTime))
                         {

@@ -20,7 +20,7 @@ namespace SeriesUpdater.Context
                     {
                         int id = whileCount;
                         string name = currRow[0];
-                        int imdbId = Convert.ToInt32(currRow[1]);
+                        string imdbId = currRow[1];
                         int[] lastViewed = MainProgram.ProcessData.convertEpisodeString(currRow[2]);
                         int[] lastEpisode = MainProgram.ProcessData.convertEpisodeString(currRow[3]);
                         int[] nextEpisode = MainProgram.ProcessData.convertEpisodeString(currRow[4]);
@@ -43,7 +43,7 @@ namespace SeriesUpdater.Context
             for (int i = 0; i < MainProgram.Variables.seriesList.Count; i++)
             {
                 string name = MainProgram.Variables.seriesList[i].name;
-                int imdbId = MainProgram.Variables.seriesList[i].imdbId;
+                string imdbId = MainProgram.Variables.seriesList[i].imdbId;
                 string lastViewed = "S" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastViewed[0] + "E" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastViewed[1];
                 string lastEpisode = "S" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastEpisode[0] + "E" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastEpisode[1];
                 string nextEpisode = "S" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].nextEpisode[0] + "E" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].nextEpisode[1];
@@ -55,7 +55,7 @@ namespace SeriesUpdater.Context
             writeData.Close();
         }
 
-        public static void writeSeries(string name, int imdbId)
+        public static void writeSeries(string name, string imdbId)
         {
             StreamWriter writeData = new StreamWriter(MainProgram.Variables.dataPath + @"\series.dat", true);
 
