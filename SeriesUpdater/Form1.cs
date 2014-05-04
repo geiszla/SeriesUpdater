@@ -1,15 +1,6 @@
 ﻿using System;
-using System.Windows;
-using System.Windows.Forms;
-using System.Collections.Generic;
-using System.IO;
 using System.Drawing;
-using System.Net;
-using Microsoft.Win32;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Data;
+using System.Windows.Forms;
 
 namespace SeriesUpdater
 {
@@ -18,58 +9,53 @@ namespace SeriesUpdater
         public Form1()
         {
             InitializeComponent();
+
+            MainProgram.Variables.notifyIcon = this.notifyIcon;
+            MainProgram.Variables.mainForm = this;
+
+            autorunStripMenuItem.Checked = Context.Settings.isStartupItem();
         }
 
         #region Form Events
         private void Form1_Load(object sender, EventArgs e)
         {
-            Variables.PublicVariables.isFirst = isFirstCheck();
+            Context.IO.readSeries();
 
-            IO.Input.readInput();
-
-            if (Variables.PublicVariables.isFirst)
+            if (MainProgram.Variables.isFirst)
             {
-                if (!IsStartupItem() && MessageBox.Show("Szeretné, hogy a program automatikusan elinduljon a Windows indításakor?", "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (!Context.Settings.isStartupItem() && MessageBox.Show("Szeretné, hogy a program automatikusan elinduljon a Windows indításakor?", "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    setAutorun(true);
+                    autorunStripMenuItem.Checked = Context.Settings.setAutorun(true);
                 }
             }
 
-            if (Variables.PublicVariables.seriesList.Count > 0)
+            if (MainProgram.Variables.seriesList.Count > 0)
             {
-                notifyIcon.ShowBalloonTip(3000);
+                string text = "Frissítés folyamatban. A frissítés alatt nem tudod megnyitni a programot.";
+                Context.Notification.showNotification("Frissítés", text, 3000);
             }
 
             else
             {
-                notifyIcon.BalloonTipTitle = "Sorozat figyelő";
-                notifyIcon.BalloonTipText = "Az ikonra kattintva nyithatja meg a programot, adhat hozzá, illetve a későbbiekben törölhet sorozatokat.";
-                notifyIcon.ShowBalloonTip(3000);
+                string text = "Az ikonra kattintva nyithatja meg a programot, adhat hozzá, illetve a későbbiekben törölhet sorozatokat.";
+                Context.Notification.showNotification("Sorozat figyelő", text, 3000);
             }
 
-            if (Variables.PublicVariables.seriesList.Count > 0)
+            if (MainProgram.Variables.seriesList.Count > 0)
             {
-                getLatestEps(false);
+                MainProgram.WebRequest.getLatestEpisodes(false);
             }
 
-            ControlManagement.ModifyControl.applyData(false);
-            updateData(false);
+            applyData(false);
+            updateLabels(false);
 
-            if (Variables.PublicVariables.seriesList.Count > 0)
+            if (MainProgram.Variables.seriesList.Count > 0)
             {
-                notifyIcon.BalloonTipTitle = "Sikeres frissítés";
-                notifyIcon.BalloonTipText = "Sikeresen frissültek a legújabb epizódok. Most már megnyithatja a programot.";
-                notifyIcon.ShowBalloonTip(3000);
+                string text = "Sikeresen frissültek a legújabb epizódok. Most már megnyithatja a programot.";
+                Context.Notification.showNotification("Sikeres frissítés", text, 3000);
             }
 
-            nextEpNotification();
-        }
-
-        void notifyIcon_BalloonTipClicked(object sender, EventArgs e)
-        {
-            ControlManagement.ModifyControl.placeForm(false);
-            this.Show();
-            this.Activate();
+            Context.Notification.getComingSeries();
         }
 
         private void Form1_Shown(object sender, EventArgs e)
@@ -79,9 +65,9 @@ namespace SeriesUpdater
 
         private void Form1_Deactivate(object sender, EventArgs e)
         {
-            if (!Variables.PublicVariables.isAddFormOpened)
+            if (!MainProgram.Variables.isAddFormOpened)
             {
-                Variables.PublicVariables.lastDeactivateTick = Environment.TickCount;
+                MainProgram.Variables.lastDeactivateTick = Environment.TickCount;
                 this.Hide();
             }
         }
@@ -91,9 +77,9 @@ namespace SeriesUpdater
             notifyIcon.Visible = false;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void addButton_Click(object sender, EventArgs e)
         {
-            Variables.PublicVariables.isAddFormOpened = true;
+            MainProgram.Variables.isAddFormOpened = true;
             Form2 addForm = new Form2();
             addForm.FormClosed += addForm_FormClosed;
             addForm.ShowDialog();
@@ -101,10 +87,27 @@ namespace SeriesUpdater
 
         private void addForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if (Variables.PublicVariables.isAddedSeries)
+            if (MainProgram.Variables.isAddedSeries)
             {
-                ControlManagement.ModifyControl.applyData(true);
-                ControlManagement.ModifyControl.placeForm(true);
+                applyData(true);
+                placeForm(true);
+            }
+        }
+
+        private void deleteImage_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("Biztosan törölni akarod ezt a sorozatot?", "Sorozat törlése", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                PictureBox deleteImage = (PictureBox)sender;
+                int id = Convert.ToInt32(deleteImage.Name.Split('_')[1]);
+                MainProgram.Variables.seriesList.Remove(MainProgram.Variables.seriesList[id]);
+                Controls.Remove(Controls.Find("delete_" + (MainProgram.Variables.seriesList.Count), true)[0]);
+
+                TableLayoutPanel seriesTable = (TableLayoutPanel)Controls.Find("createSeriesTable", true)[0];
+                Controls.Remove(seriesTable);
+
+                applyData(false);
+                Context.IO.writeSeries();
             }
         }
         #endregion
@@ -112,11 +115,11 @@ namespace SeriesUpdater
         #region NotifyIcon Events
         private void notifyIcon_MouseClick(object sender, MouseEventArgs e)
         {
-            ControlManagement.ModifyControl.placeForm(false);
+            placeForm(false);
 
             if (e.Button == MouseButtons.Left)
             {
-                if (Environment.TickCount - Variables.PublicVariables.lastDeactivateTick > 250)
+                if (Environment.TickCount - MainProgram.Variables.lastDeactivateTick > 250)
                 {
                     this.Show();
                     this.Activate();
@@ -138,50 +141,46 @@ namespace SeriesUpdater
 
         private void autorunStripMenuItem_Click(object sender, EventArgs e)
         {
-            setAutorun(false);
+            autorunStripMenuItem.Checked = Context.Settings.setAutorun(false);
         }
         #endregion
 
-        #region Main functions
-        
-
-        public static void deleteImage_Click(object sender, EventArgs e)
+        #region Functions
+        void placeForm(bool isFormClosed)
         {
-            if (MessageBox.Show("Biztosan törölni akarod ezt a sorozatot?", "Sorozat törlése", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (Cursor.Position.X + (this.Width / 2) <= Screen.PrimaryScreen.WorkingArea.Width - 10 && !isFormClosed)
             {
-                Form thisForm = Application.OpenForms[0];
-
-                PictureBox deleteImage = (PictureBox)sender;
-                int id = Convert.ToInt32(deleteImage.Name.Split('_')[1]);
-                Variables.PublicVariables.seriesList.Remove(Variables.PublicVariables.seriesList[id]);
-                thisForm.Controls.Remove(deleteImage);
-
-                TableLayoutPanel seriesTable = (TableLayoutPanel)thisForm.Controls.Find("createSeriesTable", true)[0];
-                thisForm.Controls.Remove(seriesTable);
-
-                ControlManagement.ModifyControl.applyData(false);
+                this.Left = Cursor.Position.X - (this.Width / 2);
             }
+
+            else
+            {
+                this.Left = Screen.PrimaryScreen.WorkingArea.Width - this.Width - 10;
+            }
+
+            Top = Screen.PrimaryScreen.WorkingArea.Height - Height - 10;
         }
 
-        void updateData(bool updateLastEpisode)
+        void applyData(bool isAdd)
         {
-            if (updateLastEpisode)
+            if (MainProgram.Variables.seriesList.Count > 0)
             {
-                for (int i = 0; i < Variables.PublicVariables.seriesList.Count; i++)
+                if (Controls.Find("createSeriesTable", true).Length == 0)
                 {
-                    Label currLabel = (Label)Controls.Find("lastEp_" + i, true)[0];
-                    currLabel.Text = "S" + Variables.PublicVariables.seriesList[i].lastEpisode[0] + "E" + Variables.PublicVariables.seriesList[i].lastEpisode[0];
+                    Label nameHeaderLabel = Context.Controls.createLabel("nameHeaderLabel", "Név", true);
+                    Label lastViewedHeaderLabel = Context.Controls.createLabel("lastViewedHeaderLabel", "Legutóbb megtekintett", true);
+                    Label lastEpisodeHeaderLabel = Context.Controls.createLabel("lastEpisodeHeaderLabel", "Legújabb", true);
+
+                    TableLayoutPanel seriesTable = Context.Controls.createTableLayoutPanel(nameHeaderLabel, lastViewedHeaderLabel, lastEpisodeHeaderLabel);
+                    Application.OpenForms[0].Controls.Add(seriesTable);
                 }
             }
-        }
 
-        public static void getLatestEps(bool isAdd)
-        {
-            int forStart;
+            int forStart = 0;
 
             if (isAdd)
             {
-                forStart = Variables.PublicVariables.seriesList.Count - 1;
+                forStart = MainProgram.Variables.seriesList.Count - 1;
             }
 
             else
@@ -189,244 +188,54 @@ namespace SeriesUpdater
                 forStart = 0;
             }
 
-            for (int i = 0; i < Variables.PublicVariables.seriesList.Count; i++)
+            for (int i = forStart; i < MainProgram.Variables.seriesList.Count; i++)
             {
-                int id = Convert.ToInt32(Variables.PublicVariables.seriesList[i].imdbId);
-                Variables.PublicVariables.seriesList[i].lastEpisode = getLatestEp(id, WebRequests.Core.requestImdb(id, ""), true);
-            }
-        }
+                Label nameLabel = Context.Controls.createLabel("name_" + MainProgram.Variables.seriesList[i].id, MainProgram.Variables.seriesList[i].name, false);
+                Label lastViewedLabel = Context.Controls.createLabel("lastViewed_" + MainProgram.Variables.seriesList[i].id, "S" + MainProgram.Variables.seriesList[i].lastViewed[0] + "E" + MainProgram.Variables.seriesList[i].lastViewed[1], false);
 
-        void nextEpNotification()
-        {
-            List<Series> todaySeries = new List<Series>();
-            List<Series> tomorrowSeries = new List<Series>();
-
-            for (int i = 0; i < Variables.PublicVariables.seriesList.Count; i++)
-            {
-                int days = Variables.PublicVariables.seriesList[i].nextEpisodeAirDate.DayOfYear - DateTime.Now.DayOfYear;
-
-                if (DateTime.Now.Year >= Variables.PublicVariables.seriesList[i].nextEpisodeAirDate.Year)
+                Label lastEpLabel = new Label();
+                if (MainProgram.Variables.seriesList[i].lastEpisode != default(int[]))
                 {
-                    if (days == 0)
-                    {
-                        todaySeries.Add(Variables.PublicVariables.seriesList[i]);
-                    }
-
-                    else if (days == 1)
-                    {
-                        tomorrowSeries.Add(Variables.PublicVariables.seriesList[i]);
-                    }
-                }
-            }
-
-            showNewEpisodeNotification("A mai napon", todaySeries);
-
-            Task newNotification = Task.Factory.StartNew(() =>
-                {
-                    Thread.Sleep(8000);
-                    showNewEpisodeNotification("Holnap", tomorrowSeries);
-                });
-        }
-
-        void setAutorun(bool addAnyway)
-        {
-            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
-
-            if (!IsStartupItem() || addAnyway)
-            {
-                if (!File.Exists(Variables.PublicVariables.dataPath + @"\MainProgram.exe") && MessageBox.Show("Szeretné, ha a programról készülne egy másolat? Így a file törlése esetén is lehetséges a Windows indításakor való futtatás.", "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                {
-                    File.Copy(MainProgram.ExecutablePath.ToString(), Variables.PublicVariables.dataPath + @"\MainProgram.exe");
-                    registryKey.SetValue("MainProgram", Variables.PublicVariables.dataPath + @"\MainProgram.exe");
+                    lastEpLabel = Context.Controls.createLabel("lastEp_" + MainProgram.Variables.seriesList[i].id, "S" + MainProgram.Variables.seriesList[i].lastEpisode[0] + "E" + MainProgram.Variables.seriesList[i].lastEpisode[1], false);
                 }
 
                 else
                 {
-                    registryKey.SetValue("MainProgram", MainProgram.ExecutablePath.ToString());
+                    lastEpLabel = Context.Controls.createLabel("lastEp_" + MainProgram.Variables.seriesList[i].id, "", false);
                 }
 
-                autorunStripMenuItem.Checked = true;
-            }
+                TableLayoutPanel seriesTable = (TableLayoutPanel)Controls.Find("createSeriesTable", true)[0];
+                seriesTable.Controls.Add(nameLabel, 0, i + 1);
+                seriesTable.Controls.Add(lastViewedLabel, 1, i + 1);
+                seriesTable.Controls.Add(lastEpLabel, 2, i + 1);
 
-            else
-            {
-                registryKey.DeleteValue("MainProgram", false);
-                autorunStripMenuItem.Checked = false;
-            }
-        }
-        #endregion
-
-        #region Subfunctions
-        int getLabelId(object sender)
-        {
-            Label currLabel = (Label)sender;
-
-            int currId = Convert.ToInt32(currLabel.Name.Substring(currLabel.Name.LastIndexOf('_') + 1));
-
-            return currId;
-        }
-
-        public static string[] getInnerHTMLByClassOrId(int startSearchIndex, string HTMLText, string inputClassOrId, string classOrId)
-        {
-            int startIndex = HTMLText.IndexOf('>', HTMLText.IndexOf(classOrId + "=\"" + inputClassOrId + "\"", startSearchIndex) + 1);
-            string tagName = HTMLText.Substring(HTMLText.LastIndexOf('<', startIndex) + 1, HTMLText.IndexOf(' ', HTMLText.LastIndexOf('<', startIndex)) - HTMLText.LastIndexOf('<', startIndex) - 1);
-            int endIndex = HTMLText.IndexOf("</" + tagName + ">", startIndex + 1);
-            if (endIndex != -1)
-            {
-                string innerHTML = HTMLText.Substring(startIndex + 1, endIndex - startIndex - 1);
-
-                string[] returnValues = new string[2];
-                returnValues[0] = innerHTML;
-                returnValues[1] = Convert.ToString(endIndex);
-
-                return returnValues;
-            }
-
-            else
-            {
-                return new string[2];
-            }
-        }
-
-        public static int[] getLatestEp(int id, string HTMLText, bool isAdd)
-        {
-            if (HTMLText == "")
-            {
-                return new int[]{0, 0};
-            }
-
-            string seasonName = getInnerHTMLByClassOrId(0, HTMLText, "episode_top", "id")[0];
-
-            if (seasonName == null)
-            {
-                MessageBox.Show("Ennek a sorozatnak nincsenek epizódjai. Kérem válasszon egy másikat!", "Érvénytelen sorozat", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return new int[] { 0, 0 };
-            }
-
-            string previousSeasonNumber = "?season=" + Convert.ToString(Convert.ToInt32(seasonName.Substring(seasonName.IndexOf("Season&nbsp;") + 12)) - 1);
-            string nextSeasonNumber = "?season=" + Convert.ToString(Convert.ToInt32(seasonName.Substring(seasonName.IndexOf("Season&nbsp;") + 12)) + 1);
-
-            int startIndex = 0;
-            DateTime latestAirDate = new DateTime();
-            DateTime nextAirDate = new DateTime();
-            int latestDateIndex = 0;
-            int nextDateIndex = 0;
-            string innerHTML = "";
-            while ((innerHTML = getInnerHTMLByClassOrId(startIndex, HTMLText, "airdate", "class")[0]) != default(string))
-            {
-                int endIndex = Convert.ToInt32(getInnerHTMLByClassOrId(startIndex, HTMLText, "airdate", "class")[1]);
-                DateTime airDate = Convert.ToDateTime(innerHTML);
-                if (airDate < DateTime.Now)
+                if (MainProgram.Variables.seriesList[i].lastEpisode[0] > MainProgram.Variables.seriesList[i].lastViewed[0] || (MainProgram.Variables.seriesList[i].lastEpisode[0] == MainProgram.Variables.seriesList[i].lastViewed[0] && MainProgram.Variables.seriesList[i].lastEpisode[1] > MainProgram.Variables.seriesList[i].lastViewed[1]))
                 {
-                    latestAirDate = airDate;
-                    latestDateIndex = endIndex;
+                    lastEpLabel.Font = new Font(lastEpLabel.Font, FontStyle.Bold | FontStyle.Underline);
+                    lastEpLabel.Width = lastEpLabel.PreferredWidth;
+
+                    /*
+                    PictureBox newPicture = ControlManagement.NewControls.createPictureBox("new_" + MainProgram.Variables.seriesList[i].id, SeriesUpdater.Properties.Resources.uj_másolat, createSeriesTable.Left + lastEpLabel.Left + lastEpLabel.Width + 2, createSeriesTable.Top + lastEpLabel.Top + 1, 10);
+                    newPicture.BringToFront();
+                     */
                 }
 
-                else
+                Control currRowLabel = Controls.Find("name_" + MainProgram.Variables.seriesList[i].id, true)[0];
+                PictureBox deleteImage = Context.Controls.createPictureBox("delete_" + MainProgram.Variables.seriesList[i].id, SeriesUpdater.Properties.Resources.delete1, 2, currRowLabel.Top + seriesTable.Top, 15, true);
+                deleteImage.Click += deleteImage_Click;
+                Controls.Add(deleteImage);
+            }
+        }
+
+        void updateLabels(bool updateLastEpisode)
+        {
+            if (updateLastEpisode)
+            {
+                for (int i = 0; i < MainProgram.Variables.seriesList.Count; i++)
                 {
-                    nextAirDate = airDate;
-                    nextDateIndex = endIndex;
-                    break;
+                    Label currLabel = (Label)Controls.Find("lastEp_" + i, true)[0];
+                    currLabel.Text = "S" + MainProgram.Variables.seriesList[i].lastEpisode[0] + "E" + MainProgram.Variables.seriesList[i].lastEpisode[0];
                 }
-
-                startIndex = Convert.ToInt32(getInnerHTMLByClassOrId(startIndex, HTMLText, "airdate", "class")[1]);
-            }
-
-            if (isAdd)
-            {
-                for (int i = 0; i < Variables.PublicVariables.seriesList.Count; i++)
-                {
-                    if (Variables.PublicVariables.seriesList[i].imdbId == id)
-                    {
-                        if (nextAirDate == default(DateTime))
-                        {
-                            Variables.PublicVariables.seriesList[i].nextEpisodeAirDate = nextAirDate;
-                            Variables.PublicVariables.seriesList[i].nextEpisode = new int[] { 0, 0 };
-                        }
-
-                        else
-                        {
-                            Variables.PublicVariables.seriesList[i].nextEpisodeAirDate = nextAirDate;
-                            Variables.PublicVariables.seriesList[i].nextEpisode = getEpisodeByDateIndex(HTMLText, nextDateIndex);
-                        }
-                    }
-                }
-            }
-
-            if (latestAirDate == default(DateTime))
-            {
-                return getLatestEp(id, WebRequests.Core.requestImdb(id, previousSeasonNumber), false);
-            }
-
-            else
-            {
-                return getEpisodeByDateIndex(HTMLText, latestDateIndex);
-            }
-        }
-
-        static int[] getEpisodeByDateIndex(string HTMLText, int dateIndex)
-        {
-            int startIndex = HTMLText.IndexOf("<div>", HTMLText.LastIndexOf("<img", dateIndex)) + 4;
-            int endIndex = HTMLText.IndexOf("</div>", HTMLText.IndexOf("<div>", HTMLText.LastIndexOf("<img", dateIndex)) + 1);
-            string innerHTML = HTMLText.Substring(startIndex + 1, endIndex - startIndex - 1);
-
-            int[] episodeNumber = new int[2];
-            episodeNumber[0] = Convert.ToInt32(innerHTML.Split(',')[0].Substring(innerHTML.Split(',')[0].IndexOf('S') + 1));
-            episodeNumber[1] = Convert.ToInt32(innerHTML.Split(',')[1].Substring(innerHTML.Split(',')[1].IndexOf("Ep") + 2));
-
-            return episodeNumber;
-        }
-
-        public static string getNameFromHTML(string HTMLText)
-        {
-            string innerHTML = getInnerHTMLByClassOrId(0, HTMLText, "parent", "class")[0];
-
-            Match match = Regex.Match(innerHTML, "\'url\'>(.*)</a>", RegexOptions.IgnoreCase);
-            string name = match.Groups[1].Value;
-
-            return name;
-        }
-
-        public static int[] convertSeriesString(string inputSeriesString)
-        {
-            int[] outputInt = new int[2];
-            outputInt[0] = Convert.ToInt32(inputSeriesString.Substring(inputSeriesString.IndexOf('S') + 1, inputSeriesString.IndexOf('E') - inputSeriesString.IndexOf('S') - 1));
-            outputInt[1] = Convert.ToInt32(inputSeriesString.Substring(inputSeriesString.IndexOf('E') + 1));
-
-            return outputInt;
-        }
-
-        void showNewEpisodeNotification(string when, List<Series> comingSeries)
-        {
-            if (comingSeries.Count == 1)
-            {
-                notifyIcon.BalloonTipTitle = "Új epizód";
-                notifyIcon.BalloonTipText = when + " új rész jelenik meg a következő sorozatból: " + comingSeries[0].name;
-                notifyIcon.ShowBalloonTip(5000);
-            }
-
-            else if (comingSeries.Count > 1)
-            {
-                notifyIcon.BalloonTipTitle = "Új epizód";
-                notifyIcon.BalloonTipTitle += "(" + comingSeries.Count + ")";
-                notifyIcon.BalloonTipText = when + " új részek jelennek meg a következő sorozatokból: ";
-
-                for (int i = 0; i < comingSeries.Count; i++)
-                {
-                    notifyIcon.BalloonTipText += comingSeries[i].name;
-
-                    if (i != comingSeries.Count - 1)
-                    {
-                        notifyIcon.BalloonTipText += ", ";
-                    }
-
-                    else
-                    {
-                        notifyIcon.BalloonTipText += ".";
-                    }
-                }
-
-                notifyIcon.ShowBalloonTip(5000);
             }
         }
 
@@ -439,37 +248,6 @@ namespace SeriesUpdater
 
             base.WndProc(ref message);
         }
-
-        bool IsStartupItem()
-        {
-            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
-
-            if (registryKey.GetValue("MainProgram") == null)
-            {
-                autorunStripMenuItem.Checked = false;
-                return false;
-            }
-
-            else
-            {
-                autorunStripMenuItem.Checked = true;
-                return true;
-            }
-        }
-
-        static bool isFirstCheck()
-        {
-            if (Directory.Exists(Variables.PublicVariables.dataPath))
-            {
-                return false;
-            }
-
-            else
-            {
-                return true;
-            }
-        }
-
         #endregion
     }
 

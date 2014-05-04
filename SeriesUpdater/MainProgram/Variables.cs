@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace SeriesUpdater.MainProgram
 {
     class Variables
     {
+        public static Form mainForm;
+        public static NotifyIcon notifyIcon;
+
         public static int lastDeactivateTick;
         public static bool isAddFormOpened = false;
         public static List<Series> seriesList = new List<Series>();
-        public static string dataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\MainProgram";
-        public static bool isFirst;
+        public static string dataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SeriesUpdater";
+        public static bool isFirst = Context.Settings.isFirstCheck();
         public static bool isAddedSeries = false;
 
         public static string[] selectedSeries = new string[2];

@@ -1,27 +1,20 @@
 ﻿using System;
-using System.Windows.Forms;
-using System.Collections.Generic;
 using System.IO;
+using System.Windows.Forms;
 
 namespace SeriesUpdater
 {
     public partial class Form2 : Form
     {
-        #region Public variables
-        
-        #endregion
-
-        #region Initialization
         public Form2()
         {
             InitializeComponent();
         }
-        #endregion
 
         #region Events
         private void Form2_Load(object sender, EventArgs e)
         {
-            Variables.PublicVariables.isAddedSeries = false;
+            MainProgram.Variables.isAddedSeries = false;
             this.ActiveControl = nameTextBox;
         }
         private void cancelButton_Click(object sender, EventArgs e)
@@ -29,7 +22,7 @@ namespace SeriesUpdater
             this.Close();
         }
 
-        private void acceptAddButton_Click(object sender, EventArgs e)
+        private void addButton_Click(object sender, EventArgs e)
         {
             if (nameTextBox.Text == "")
             {
@@ -61,7 +54,7 @@ namespace SeriesUpdater
 
                 try
                 {
-                    Form1.convertSeriesString(lastViewedEpisodeTextBox.Text);
+                    MainProgram.ProcessData.convertEpisodeString(lastViewedEpisodeTextBox.Text);
                 }
 
                 catch
@@ -76,14 +69,14 @@ namespace SeriesUpdater
 
         private void Form2_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Variables.PublicVariables.isAddFormOpened = false;
+            MainProgram.Variables.isAddFormOpened = false;
         }
 
         private void searchButton_Click(object sender, EventArgs e)
         {
-            Variables.PublicVariables.isSelectedSeries = false;
+            MainProgram.Variables.isSelectedSeries = false;
 
-            Variables.PublicVariables.searchQuery = nameTextBox.Text;
+            MainProgram.Variables.searchQuery = nameTextBox.Text;
 
             Form3 searchForm = new Form3();
             searchForm.FormClosed += searchForm_FormClosed;
@@ -106,12 +99,13 @@ namespace SeriesUpdater
                 }
 
                 Cursor.Current = Cursors.WaitCursor;
-                string HTMLText = WebRequests.Core.requestImdb(Convert.ToInt32(imdbIdTextBox.Text), "");
-                int[] latestEp = Form1.getLatestEp(Convert.ToInt32(imdbIdTextBox.Text), HTMLText, false);
+                string url = "http://www.imdb.com/title/" + "tt" + Convert.ToInt32(imdbIdTextBox.Text) + "/episodes";
+                string HTMLText = MainProgram.WebRequest.requestPage(url);
+                int[] latestEp = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(Convert.ToInt32(imdbIdTextBox.Text), HTMLText, false);
 
                 if (HTMLText != "")
                 {
-                    nameTextBox.Text = Form1.getNameFromHTML(HTMLText);
+                    nameTextBox.Text = MainProgram.ProcessHTML.getNameFromHTML(HTMLText);
                     lastViewedEpisodeTextBox.Text = "S" + latestEp[0] + "E" + latestEp[1];
                 }
             }
@@ -124,13 +118,13 @@ namespace SeriesUpdater
 
         void searchForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if (Variables.PublicVariables.isSelectedSeries)
+            if (MainProgram.Variables.isSelectedSeries)
             {
-                int id = Convert.ToInt32(Variables.PublicVariables.selectedSeries[0]);
+                int id = Convert.ToInt32(MainProgram.Variables.selectedSeries[0]);
 
-                imdbIdTextBox.Text = Variables.PublicVariables.selectedSeries[0];
-                nameTextBox.Text = Variables.PublicVariables.selectedSeries[1];
-                lastViewedEpisodeTextBox.Text = "S" + Variables.PublicVariables.selectedLastEpisodes[0] + "E" + Variables.PublicVariables.selectedLastEpisodes[1];
+                imdbIdTextBox.Text = MainProgram.Variables.selectedSeries[0];
+                nameTextBox.Text = MainProgram.Variables.selectedSeries[1];
+                lastViewedEpisodeTextBox.Text = "S" + MainProgram.Variables.selectedLastEpisodes[0] + "E" + MainProgram.Variables.selectedLastEpisodes[1];
             }
         }
 
@@ -149,50 +143,51 @@ namespace SeriesUpdater
                 fillButton_Click(new object(), new EventArgs());
             }
         }
+
+        private void nameTextBox_TextChanged(object sender, EventArgs e)
+        {
+            checkEmptyBoxes();
+        }
+
+        private void imdbIdTextBox_TextChanged(object sender, EventArgs e)
+        {
+            checkEmptyBoxes();
+        }
+
+        private void lastViewedEpisodeTextBox_TextChanged(object sender, EventArgs e)
+        {
+            checkEmptyBoxes();
+        }
         #endregion
 
-        #region Main functions
-        public void addSeries()
+        #region Functions
+        void addSeries()
         {
             Cursor.Current = Cursors.WaitCursor;
 
-            Application.OpenForms[0].Height += 25;
-            Application.OpenForms[0].Top -= 25;
+            Series newSeries = new Series(MainProgram.Variables.seriesList.Count, nameTextBox.Text, Convert.ToInt32(imdbIdTextBox.Text), MainProgram.ProcessData.convertEpisodeString(lastViewedEpisodeTextBox.Text), new int[2], new int[2], new DateTime());
+            MainProgram.Variables.seriesList.Add(newSeries);
 
-            Series newSeries = new Series(Variables.PublicVariables.seriesList.Count, nameTextBox.Text, Convert.ToInt32(imdbIdTextBox.Text), Form1.convertSeriesString(lastViewedEpisodeTextBox.Text), new int[2], new int[2], new DateTime());
-            Variables.PublicVariables.seriesList.Add(newSeries);
+            MainProgram.WebRequest.getLatestEpisodes(true);
 
-            Form1.getLatestEps(true);
-
-            if (Variables.PublicVariables.seriesList[Variables.PublicVariables.seriesList.Count - 1].lastEpisode[0] == 0)
+            if (MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastEpisode[0] == 0)
             {
                 return;
             }
 
-            if (!Directory.Exists(Variables.PublicVariables.dataPath))
+            if (!Directory.Exists(MainProgram.Variables.dataPath))
             {
-                Directory.CreateDirectory(Variables.PublicVariables.dataPath);
+                Directory.CreateDirectory(MainProgram.Variables.dataPath);
             }
 
-            StreamWriter addData = new StreamWriter(Variables.PublicVariables.dataPath + @"\series.dat", true);
+            Context.IO.writeSeries(newSeries.name, Convert.ToInt32(newSeries.imdbId));
 
-            string name = newSeries.name;
-            int imdbId = Convert.ToInt32(newSeries.imdbId);
-            string lastViewed = "S" + Variables.PublicVariables.seriesList[Variables.PublicVariables.seriesList.Count - 1].lastViewed[0] + "E" + Variables.PublicVariables.seriesList[Variables.PublicVariables.seriesList.Count - 1].lastViewed[1];
-            string lastEpisode = "S" + Variables.PublicVariables.seriesList[Variables.PublicVariables.seriesList.Count - 1].lastEpisode[0] + "E" + Variables.PublicVariables.seriesList[Variables.PublicVariables.seriesList.Count - 1].lastEpisode[1];
-            string nextEpisode = "S" + Variables.PublicVariables.seriesList[Variables.PublicVariables.seriesList.Count - 1].nextEpisode[0] + "E" + Variables.PublicVariables.seriesList[Variables.PublicVariables.seriesList.Count - 1].nextEpisode[1];
-            string nextAirDate = Variables.PublicVariables.seriesList[Variables.PublicVariables.seriesList.Count - 1].nextEpisodeAirDate.ToString("d");
-
-            addData.WriteLine("{0};{1};{2};{3};{4};{5}", name, imdbId, lastViewed, lastEpisode, nextEpisode, nextAirDate);
-            addData.Close();
             Cursor.Current = Cursors.Arrow;
-            Variables.PublicVariables.isAddedSeries = true;
+            MainProgram.Variables.isAddedSeries = true;
 
             this.Close();
         }
-        #endregion
 
-        #region Subfunctions
         void checkEmptyBoxes()
         {
             if (imdbIdTextBox.Text != "")
@@ -227,20 +222,5 @@ namespace SeriesUpdater
             base.WndProc(ref message);
         }
         #endregion
-
-        private void nameTextBox_TextChanged(object sender, EventArgs e)
-        {
-            checkEmptyBoxes();
-        }
-
-        private void imdbIdTextBox_TextChanged(object sender, EventArgs e)
-        {
-            checkEmptyBoxes();
-        }
-
-        private void lastViewedEpisodeTextBox_TextChanged(object sender, EventArgs e)
-        {
-            checkEmptyBoxes();
-        }
     }
 }

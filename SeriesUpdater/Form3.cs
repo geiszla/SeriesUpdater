@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.IO;
-using System.Net;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace SeriesUpdater
@@ -20,9 +16,9 @@ namespace SeriesUpdater
         {
             this.Visible = false;
 
-            if (Variables.PublicVariables.searchQuery != "")
+            if (MainProgram.Variables.searchQuery != "")
             {
-                searchBox.Text = Variables.PublicVariables.searchQuery;
+                searchBox.Text = MainProgram.Variables.searchQuery;
                 startSearch();
             }
 
@@ -45,15 +41,16 @@ namespace SeriesUpdater
         private void selectButton_Click(object sender, EventArgs e)
         {
             Cursor.Current = Cursors.WaitCursor;
-            Variables.PublicVariables.selectedSeries[0] = resultTable.SelectedRows[0].Cells[0].Value.ToString();
-            Variables.PublicVariables.selectedSeries[1] = resultTable.SelectedRows[0].Cells[1].Value.ToString();
+            MainProgram.Variables.selectedSeries[0] = resultTable.SelectedRows[0].Cells[0].Value.ToString();
+            MainProgram.Variables.selectedSeries[1] = resultTable.SelectedRows[0].Cells[1].Value.ToString();
 
             int id = Convert.ToInt32(resultTable.SelectedRows[0].Cells[0].Value);
-            Variables.PublicVariables.selectedLastEpisodes = Form1.getLatestEp(id, WebRequests.Core.requestImdb(id, ""), false);
+            string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes";
+            MainProgram.Variables.selectedLastEpisodes = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url), false);
 
-            if (Variables.PublicVariables.selectedLastEpisodes[0] != 0)
+            if (MainProgram.Variables.selectedLastEpisodes[0] != 0)
             {
-                Variables.PublicVariables.isSelectedSeries = true;
+                MainProgram.Variables.isSelectedSeries = true;
                 this.Close();
             }
         }
@@ -62,106 +59,6 @@ namespace SeriesUpdater
         {
             this.Close();
         }
-        #endregion
-
-        #region Main functions
-        void startSearch()
-        {
-            Variables.PublicVariables.resultSeriesList.Clear();
-            Cursor.Current = Cursors.WaitCursor;
-
-            searchForSeries(searchBox.Text);
-            DataTable seriesTable = CreateTable();
-
-            if (seriesTable.Rows.Count == 0)
-            {
-                MessageBox.Show("Nincs találat. Kérem próbálja újra más kulcsszóval!", "Nincs találat", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-
-            else
-            {
-                resultTable.DataSource = seriesTable;
-
-                for (int i = 0; i < resultTable.Columns.Count; i++)
-                {
-                    resultTable.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-                }
-            }
-
-            Cursor.Current = Cursors.Arrow;
-        }
-
-        public void searchForSeries(string query)
-        {
-            string url = "http://www.imdb.com/find?" + "q=" + query + "&s=tt&ttype=tv&ref_=fn_tv";
-
-            HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(url);
-            myRequest.Method = "GET";
-            WebResponse myResponse = myRequest.GetResponse();
-
-            StreamReader sr = new StreamReader(myResponse.GetResponseStream(), System.Text.Encoding.UTF8);
-            string HTMLText = sr.ReadToEnd();
-            sr.Close();
-            myResponse.Close();
-
-            int startIndex = 0;
-            string innerHTML = "";
-            for (int i = 0; i < 10; i++)
-            {
-                if ((innerHTML = Form1.getInnerHTMLByClassOrId(startIndex, HTMLText, "result_text", "class")[0]) == null)
-                {
-                    break;
-                }
-
-                ResultSeries currResult = new ResultSeries();
-
-                Match typeMatch = Regex.Match(innerHTML, @"\(([a-z| |-]*)\)", RegexOptions.IgnoreCase);
-                currResult.type = typeMatch.Groups[1].Value;
-
-                if (currResult.type == "TV Movie" || currResult.type == "TV Short")
-                {
-                    i--;
-                }
-
-                else
-                {
-                    Match idMatch = Regex.Match(innerHTML, @"/title/tt(.*)\/\?", RegexOptions.IgnoreCase);
-                    currResult.id = Convert.ToInt32(idMatch.Groups[1].Value);
-
-                    Match nameMatch = Regex.Match(innerHTML, "<(a href=)+.*>(.*)</a", RegexOptions.IgnoreCase);
-                    currResult.name = nameMatch.Groups[2].Value;
-
-                    Match akaMatch = Regex.Match(innerHTML, "<i>\"(.*)\"</i>", RegexOptions.IgnoreCase);
-                    currResult.aka = akaMatch.Groups[1].Value;
-
-                    Match yearMatch = Regex.Match(innerHTML, @"> \(([0-9]*)\)", RegexOptions.IgnoreCase);
-                    currResult.startYear = yearMatch.Groups[1].Value;
-
-                    Variables.PublicVariables.resultSeriesList.Add(currResult);
-                }
-
-                startIndex = Convert.ToInt32(Form1.getInnerHTMLByClassOrId(startIndex, HTMLText, "result_text", "class")[1]);
-            }
-        }
-
-        static DataTable CreateTable()
-        {
-            DataTable seriesTable = new DataTable();
-            seriesTable.Columns.Add("IMDB id", typeof(int));
-            seriesTable.Columns.Add("Név", typeof(string));
-            seriesTable.Columns.Add("Másképpen", typeof(string));
-            seriesTable.Columns.Add("Év", typeof(string));
-            seriesTable.Columns.Add("Típus", typeof(string));
-
-            for (int i = 0; i < Variables.PublicVariables.resultSeriesList.Count; i++)
-            {
-                List<ResultSeries> resultSeriesList = Variables.PublicVariables.resultSeriesList;
-                seriesTable.Rows.Add(resultSeriesList[i].id, resultSeriesList[i].name, resultSeriesList[i].aka, resultSeriesList[i].startYear, resultSeriesList[i].type);
-            }
-
-            return seriesTable;
-        }
-        #endregion
 
         private void searchBox_TextChanged(object sender, EventArgs e)
         {
@@ -183,6 +80,35 @@ namespace SeriesUpdater
                 searchButton_Click(new Object(), new EventArgs());
             }
         }
+        #endregion
+
+        #region Functions
+        void startSearch()
+        {
+            MainProgram.Variables.resultSeriesList.Clear();
+            Cursor.Current = Cursors.WaitCursor;
+
+            MainProgram.WebRequest.searchForSeries(searchBox.Text);
+            DataTable seriesTable = MainProgram.ProcessData.createTable();
+
+            if (seriesTable.Rows.Count == 0)
+            {
+                MessageBox.Show("Nincs találat. Kérem próbálja újra más kulcsszóval!", "Nincs találat", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            else
+            {
+                resultTable.DataSource = seriesTable;
+
+                for (int i = 0; i < resultTable.Columns.Count; i++)
+                {
+                    resultTable.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                }
+            }
+
+            Cursor.Current = Cursors.Arrow;
+        }
+        #endregion
     }
 
     #region Classes
