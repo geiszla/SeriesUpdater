@@ -43,5 +43,19 @@ namespace SeriesUpdater.MainProgram
 
             return seriesTable;
         }
+
+        public static int getElementFromListByName(string name)
+        {
+            int elementNumber = -1;
+            for (int i = 0; i < MainProgram.Variables.seriesList.Count; i++)
+            {
+                if (MainProgram.Variables.seriesList[i].name == name)
+                {
+                    elementNumber = i;
+                }
+            }
+
+            return elementNumber;
+        }
     }
 }

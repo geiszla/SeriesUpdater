@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -6,9 +7,16 @@ namespace SeriesUpdater.MainProgram
 {
     class ProcessHTML
     {
-        public static string[] getInnerHTMLByClassOrId(int startSearchIndex, string HTMLText, string inputClassOrId, string classOrId)
+        static DateTime currNextAirDate = new DateTime();
+
+        public static void getInnerHTMLByTagName(int startSearchIndex, string HTMLText, string tagName)
         {
-            int startIndex = HTMLText.IndexOf('>', HTMLText.IndexOf(classOrId + "=\"" + inputClassOrId + "\"", startSearchIndex) + 1);
+
+        }
+
+        public static string[] getInnerHTMLByAttribute(int startSearchIndex, string HTMLText, string attributeValue, string attribute)
+        {
+            int startIndex = HTMLText.IndexOf('>', HTMLText.IndexOf(attribute + "=\"" + attributeValue + "\"", startSearchIndex) + 1);
             string tagName = HTMLText.Substring(HTMLText.LastIndexOf('<', startIndex) + 1, HTMLText.IndexOf(' ', HTMLText.LastIndexOf('<', startIndex)) - HTMLText.LastIndexOf('<', startIndex) - 1);
             int endIndex = HTMLText.IndexOf("</" + tagName + ">", startIndex + 1);
             if (endIndex != -1)
@@ -43,7 +51,7 @@ namespace SeriesUpdater.MainProgram
 
         public static string getNameFromHTML(string HTMLText)
         {
-            string innerHTML = getInnerHTMLByClassOrId(0, HTMLText, "parent", "class")[0];
+            string innerHTML = getInnerHTMLByAttribute(0, HTMLText, "parent", "class")[0];
 
             Match match = Regex.Match(innerHTML, "\'url\'>(.*)</a>", RegexOptions.IgnoreCase);
             string name = match.Groups[1].Value;
@@ -58,7 +66,7 @@ namespace SeriesUpdater.MainProgram
                 return new int[] { 0, 0 };
             }
 
-            string seasonName = MainProgram.ProcessHTML.getInnerHTMLByClassOrId(0, HTMLText, "episode_top", "id")[0];
+            string seasonName = MainProgram.ProcessHTML.getInnerHTMLByAttribute(0, HTMLText, "episode_top", "id")[0];
 
             if (seasonName == null)
             {
@@ -71,13 +79,13 @@ namespace SeriesUpdater.MainProgram
 
             int startIndex = 0;
             DateTime latestAirDate = new DateTime();
-            DateTime nextAirDate = new DateTime();
+            DateTime nextAirDate = currNextAirDate;
             int latestDateIndex = 0;
             int nextDateIndex = 0;
             string innerHTML = "";
-            while ((innerHTML = MainProgram.ProcessHTML.getInnerHTMLByClassOrId(startIndex, HTMLText, "airdate", "class")[0]) != default(string))
+            while ((innerHTML = MainProgram.ProcessHTML.getInnerHTMLByAttribute(startIndex, HTMLText, "airdate", "class")[0]) != default(string))
             {
-                int endIndex = Convert.ToInt32(MainProgram.ProcessHTML.getInnerHTMLByClassOrId(startIndex, HTMLText, "airdate", "class")[1]);
+                int endIndex = Convert.ToInt32(MainProgram.ProcessHTML.getInnerHTMLByAttribute(startIndex, HTMLText, "airdate", "class")[1]);
                 DateTime airDate = new DateTime();
                 try
                 {
@@ -101,7 +109,18 @@ namespace SeriesUpdater.MainProgram
                     break;
                 }
 
-                startIndex = Convert.ToInt32(MainProgram.ProcessHTML.getInnerHTMLByClassOrId(startIndex, HTMLText, "airdate", "class")[1]);
+                startIndex = Convert.ToInt32(MainProgram.ProcessHTML.getInnerHTMLByAttribute(startIndex, HTMLText, "airdate", "class")[1]);
+            }
+
+            if (nextAirDate == default(DateTime))
+            {
+                string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes" + nextSeasonNumber;
+                getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url), isAdd);
+            }
+
+            else
+            {
+                currNextAirDate = nextAirDate;
             }
 
             if (isAdd)
@@ -110,17 +129,8 @@ namespace SeriesUpdater.MainProgram
                 {
                     if (MainProgram.Variables.seriesList[i].imdbId == Convert.ToString(id))
                     {
-                        if (nextAirDate == default(DateTime))
-                        {
-                            MainProgram.Variables.seriesList[i].nextEpisodeAirDate = nextAirDate;
-                            MainProgram.Variables.seriesList[i].nextEpisode = new int[] { 0, 0 };
-                        }
-
-                        else
-                        {
-                            MainProgram.Variables.seriesList[i].nextEpisodeAirDate = nextAirDate;
-                            MainProgram.Variables.seriesList[i].nextEpisode = MainProgram.ProcessHTML.getEpisodeByDateIndex(HTMLText, nextDateIndex);
-                        }
+                        MainProgram.Variables.seriesList[i].nextEpisodeAirDate = nextAirDate;
+                        MainProgram.Variables.seriesList[i].nextEpisode = MainProgram.ProcessHTML.getEpisodeByDateIndex(HTMLText, nextDateIndex);
                     }
                 }
             }

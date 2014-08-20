@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -57,6 +58,8 @@ namespace SeriesUpdater
             }
 
             Context.Notification.getComingSeries();
+
+            notifyIcon.MouseUp += notifyIcon_MouseClick;
         }
 
         private void Form1_Shown(object sender, EventArgs e)
@@ -80,6 +83,8 @@ namespace SeriesUpdater
 
         private void addButton_Click(object sender, EventArgs e)
         {
+            // string airTime = MainProgram.WebRequest.getAirTimeByName("The Walking Dead");
+
             MainProgram.Variables.isAddFormOpened = true;
             Form2 addForm = new Form2();
             addForm.FormClosed += addForm_FormClosed;
@@ -91,7 +96,7 @@ namespace SeriesUpdater
             if (MainProgram.Variables.isAddedSeries)
             {
                 applyData(true);
-                placeForm(true);
+                placeForm(true, false);
             }
         }
 
@@ -102,11 +107,8 @@ namespace SeriesUpdater
             {
                 PictureBox deleteImage = (PictureBox)sender;
                 int id = Convert.ToInt32(deleteImage.Name.Split('_')[1]);
-                MainProgram.Variables.seriesList.Remove(MainProgram.Variables.seriesList[id]);
-                Controls.Remove(Controls.Find("delete_" + (MainProgram.Variables.seriesList.Count), true)[0]);
-
-                TableLayoutPanel seriesTable = (TableLayoutPanel)Controls.Find("seriesTable", true)[0];
-                Controls.Remove(seriesTable);
+                Label nameLabel = (Label)Controls.Find("name_" + id, true)[0];
+                MainProgram.Variables.seriesList.Remove(MainProgram.Variables.seriesList[MainProgram.ProcessData.getElementFromListByName(nameLabel.Text)]);
 
                 applyData(false);
                 Context.IO.writeSeries();
@@ -114,12 +116,44 @@ namespace SeriesUpdater
 
             this.Deactivate += Form1_Deactivate;
         }
+
+        private void newTextBox_LostFocus(object sender, EventArgs e)
+        {
+            if (!MainProgram.Variables.keyDownFired)
+            {
+                editLastViewedLabel(sender);
+            }
+
+            else
+            {
+                MainProgram.Variables.keyDownFired = false;
+            }
+        }
+
+        void newTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                MainProgram.Variables.keyDownFired = true;
+                editLastViewedLabel(sender);
+            }
+        }
+
+        void lastViewedLabel_Click(object sender, EventArgs e)
+        {
+            editLastViewedLabel(sender);
+        }
+
+        private void constrols_Click(object sender, EventArgs e)
+        {
+            this.InvokeOnClick(this, EventArgs.Empty);
+        }
         #endregion
 
         #region NotifyIcon Events
         private void notifyIcon_MouseClick(object sender, MouseEventArgs e)
         {
-            placeForm(false);
+            placeForm(false, true);
 
             if (e.Button == MouseButtons.Left)
             {
@@ -150,11 +184,17 @@ namespace SeriesUpdater
         #endregion
 
         #region Functions
-        void placeForm(bool isFormClosed)
+        void placeForm(bool isFormClosed, bool isNotifyIconClicked)
         {
-            if (Cursor.Position.X + (this.Width / 2) <= Screen.PrimaryScreen.WorkingArea.Width - 10 && !isFormClosed)
+            int xPosition = 1700;
+            if (isNotifyIconClicked)
             {
-                this.Left = Cursor.Position.X - (this.Width / 2);
+                xPosition = Cursor.Position.X;
+            }
+
+            if (xPosition + (this.Width / 2) <= Screen.PrimaryScreen.WorkingArea.Width - 10 && !isFormClosed)
+            {
+                this.Left = xPosition - (this.Width / 2);
             }
 
             else
@@ -167,20 +207,22 @@ namespace SeriesUpdater
 
         void applyData(bool isAdd)
         {
+            if (Controls.Find("seriesTable", true).Length != 0 && !isAdd)
+            {
+                TableLayoutPanel seriesTable = (TableLayoutPanel)Controls.Find("seriesTable", true)[0];
+                this.Controls.Remove(seriesTable);
+                applyData(isAdd);
+                return;
+            }
+
             if (MainProgram.Variables.seriesList.Count > 0)
             {
-                if (Controls.Find("seriesTable", true).Length != 0 && !isAdd)
-                {
-                    TableLayoutPanel oldTable = (TableLayoutPanel)Controls.Find("seriesTable", true)[0];
-                    oldTable.Controls.Clear();
-                    oldTable.RowStyles.Clear();
-                }
-
+                Label deleteLabel = Context.Controls.createLabel("deleteLabel", "", true);
                 Label nameHeaderLabel = Context.Controls.createLabel("nameHeaderLabel", "Név", true);
                 Label lastViewedHeaderLabel = Context.Controls.createLabel("lastViewedHeaderLabel", "Legutóbb megtekintett", true);
                 Label lastEpisodeHeaderLabel = Context.Controls.createLabel("lastEpisodeHeaderLabel", "Legújabb", true);
 
-                TableLayoutPanel seriesTable = Context.Controls.createTableLayoutPanel(nameHeaderLabel, lastViewedHeaderLabel, lastEpisodeHeaderLabel);
+                TableLayoutPanel seriesTable = Context.Controls.createTableLayoutPanel(deleteLabel, nameHeaderLabel, lastViewedHeaderLabel, lastEpisodeHeaderLabel);
                 Application.OpenForms[0].Controls.Add(seriesTable);
             }
 
@@ -214,10 +256,14 @@ namespace SeriesUpdater
                     lastEpLabel = Context.Controls.createLabel("lastEp_" + MainProgram.Variables.seriesList[i].id, "", false);
                 }
 
+                PictureBox deleteImage = Context.Controls.createPictureBox("delete_" + MainProgram.Variables.seriesList[i].id, SeriesUpdater.Properties.Resources.delete1, 0, 0, 10, true);
+                deleteImage.Click += deleteImage_Click;
+
                 TableLayoutPanel seriesTable = (TableLayoutPanel)Controls.Find("seriesTable", true)[0];
-                seriesTable.Controls.Add(nameLabel, 0, i + 1);
-                seriesTable.Controls.Add(lastViewedLabel, 1, i + 1);
-                seriesTable.Controls.Add(lastEpLabel, 2, i + 1);
+                seriesTable.Controls.Add(deleteImage, 0, i + 1);
+                seriesTable.Controls.Add(nameLabel, 1, i + 1);
+                seriesTable.Controls.Add(lastViewedLabel, 2, i + 1);
+                seriesTable.Controls.Add(lastEpLabel, 3, i + 1);
 
                 if (MainProgram.Variables.seriesList[i].lastEpisode[0] > MainProgram.Variables.seriesList[i].lastViewed[0] || (MainProgram.Variables.seriesList[i].lastEpisode[0] == MainProgram.Variables.seriesList[i].lastViewed[0] && MainProgram.Variables.seriesList[i].lastEpisode[1] > MainProgram.Variables.seriesList[i].lastViewed[1]))
                 {
@@ -229,12 +275,9 @@ namespace SeriesUpdater
                     newPicture.BringToFront();
                      */
                 }
-
-                Control currRowLabel = Controls.Find("name_" + MainProgram.Variables.seriesList[i].id, true)[0];
-                PictureBox deleteImage = Context.Controls.createPictureBox("delete_" + MainProgram.Variables.seriesList[i].id, SeriesUpdater.Properties.Resources.delete1, 2, currRowLabel.Top + seriesTable.Top, 15, true);
-                deleteImage.Click += deleteImage_Click;
-                Controls.Add(deleteImage);
             }
+
+            placeForm(false, false);
         }
 
         void editLastViewedLabel(object sender)
@@ -252,7 +295,7 @@ namespace SeriesUpdater
                 TextBox newTextBox = Context.Controls.createTextBox("lastViewedBox_" + id, text);
                 newTextBox.KeyDown += newTextBox_KeyDown;
                 newTextBox.LostFocus += newTextBox_LostFocus;
-                seriesTable.Controls.Add(newTextBox, 1, id + 1);
+                seriesTable.Controls.Add(newTextBox, 2, id + 1);
 
                 newTextBox.Focus();
             }
@@ -277,7 +320,7 @@ namespace SeriesUpdater
                 Label newLabel = Context.Controls.createLabel("lastViewed_" + id, text, false);
                 newLabel.Cursor = Cursors.Hand;
                 newLabel.Click += lastViewedLabel_Click;
-                seriesTable.Controls.Add(newLabel, 1, id + 1);
+                seriesTable.Controls.Add(newLabel, 2, id + 1);
 
                 MainProgram.Variables.seriesList[id].lastViewed = MainProgram.ProcessData.convertEpisodeString(text);
                 Context.IO.writeSeries();
@@ -291,7 +334,8 @@ namespace SeriesUpdater
                 else if (MainProgram.Variables.seriesList[id].lastEpisode[0] < MainProgram.Variables.seriesList[id].lastViewed[0] || (MainProgram.Variables.seriesList[id].lastEpisode[0] == MainProgram.Variables.seriesList[id].lastViewed[0] && MainProgram.Variables.seriesList[id].lastEpisode[1] < MainProgram.Variables.seriesList[id].lastViewed[1]))
                 {
                     this.Deactivate -= Form1_Deactivate;
-                    MessageBox.Show("A legutoljára látott epizód számának kisebbnek kell lennie, mint az utoljára megjelent epizód.", "Érvénytelen epizód", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(this, "A legutoljára látott epizód számának kisebbnek kell lennie, mint az utoljára megjelent epizód.", "Érvénytelen epizód", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.Show();
                     this.Deactivate += Form1_Deactivate;
                     editLastViewedLabel(newLabel);
                 }
@@ -301,33 +345,6 @@ namespace SeriesUpdater
                     currLastEpLabel.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(238)));
                 }
             }
-        }
-
-        private void newTextBox_LostFocus(object sender, EventArgs e)
-        {
-            if (!MainProgram.Variables.keyDownFired)
-            {
-                editLastViewedLabel(sender);
-            }
-
-            else
-            {
-                MainProgram.Variables.keyDownFired = false;
-            }
-        }
-
-        void newTextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                MainProgram.Variables.keyDownFired = true;
-                editLastViewedLabel(sender);
-            }
-        }
-
-        void lastViewedLabel_Click(object sender, EventArgs e)
-        {
-            editLastViewedLabel(sender);
         }
 
         void updateLabels(bool updateLastEpisode)
@@ -352,12 +369,6 @@ namespace SeriesUpdater
                     WireAllControls(currControl);
                 }
             }
-        }
-
-        private void constrols_Click(object sender, EventArgs e)
-        {
-            this.InvokeOnClick(this, EventArgs.Empty);
-            MessageBox.Show("a");
         }
 
         protected override void WndProc(ref Message message)

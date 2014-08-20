@@ -15,7 +15,7 @@ namespace SeriesUpdater.Context
             newLabel.Margin = new Padding(3, 0, 3, 10);
             newLabel.Name = name;
             newLabel.Text = text;
-            newLabel.MaximumSize = new System.Drawing.Size(150, 23);
+            newLabel.MaximumSize = new System.Drawing.Size(150, 15);
 
             return newLabel;
         }
@@ -56,6 +56,7 @@ namespace SeriesUpdater.Context
             newImage.Height = size;
             newImage.Width = size;
             newImage.Image = image;
+            newImage.SizeMode = PictureBoxSizeMode.Zoom;
             newImage.Left = left;
             newImage.Top = top;
             newImage.Name = name;

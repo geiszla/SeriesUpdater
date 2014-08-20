@@ -60,7 +60,6 @@
             this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
             this.notifyIcon.Text = "Sorozat figyelő";
             this.notifyIcon.Visible = true;
-            this.notifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon_MouseClick);
             // 
             // notifyIconContextMenu
             // 
@@ -114,12 +113,13 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(132, 39);
+            this.ClientSize = new System.Drawing.Size(136, 42);
             this.ControlBox = false;
             this.Controls.Add(this.addButton);
             this.Controls.Add(this.seriesTitleLabel);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
+            this.Location = new System.Drawing.Point(15, 47);
             this.Name = "Form1";
             this.Padding = new System.Windows.Forms.Padding(0, 0, 5, 5);
             this.ShowInTaskbar = false;

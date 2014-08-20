@@ -62,7 +62,7 @@ namespace SeriesUpdater.MainProgram
             string innerHTML = "";
             for (int i = 0; i < 10; i++)
             {
-                if ((innerHTML = MainProgram.ProcessHTML.getInnerHTMLByClassOrId(startIndex, HTMLText, "result_text", "class")[0]) == null)
+                if ((innerHTML = MainProgram.ProcessHTML.getInnerHTMLByAttribute(startIndex, HTMLText, "result_text", "class")[0]) == null)
                 {
                     break;
                 }
@@ -94,7 +94,27 @@ namespace SeriesUpdater.MainProgram
                     MainProgram.Variables.resultSeriesList.Add(currResult);
                 }
 
-                startIndex = Convert.ToInt32(MainProgram.ProcessHTML.getInnerHTMLByClassOrId(startIndex, HTMLText, "result_text", "class")[1]);
+                startIndex = Convert.ToInt32(MainProgram.ProcessHTML.getInnerHTMLByAttribute(startIndex, HTMLText, "result_text", "class")[1]);
+            }
+        }
+
+        public static string getAirTimeByName(string name)
+        {
+            string content = requestPage("http://services.tvrage.com/feeds/fullschedule.php?country=US");
+            string[] showData = MainProgram.ProcessHTML.getInnerHTMLByAttribute(0, content, name, "name");
+
+            if (showData[0] != null)
+            {
+                int startIndex = content.IndexOf("attr=\"", content.LastIndexOf("<time", Convert.ToInt32(showData[1]))) + 6;
+                int endIndex = content.IndexOf("\"", startIndex) + 1;
+                string airTime = content.Substring(startIndex, endIndex - startIndex - 1);
+
+                return Convert.ToDateTime(airTime).ToString("HH:mm");
+            }
+
+            else
+            {
+                return default(DateTime).ToString("H:mm");
             }
         }
     }
