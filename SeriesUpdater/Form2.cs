@@ -14,6 +14,7 @@ namespace SeriesUpdater
         #region Events
         private void Form2_Load(object sender, EventArgs e)
         {
+            placeForm();
             MainProgram.Variables.isAddedSeries = false;
             this.ActiveControl = nameTextBox;
         }
@@ -159,6 +160,11 @@ namespace SeriesUpdater
         #endregion
 
         #region Functions
+        void placeForm()
+        {
+            Top = Screen.PrimaryScreen.WorkingArea.Height - Height - 10;
+        }
+
         void addSeries()
         {
             Cursor.Current = Cursors.WaitCursor;

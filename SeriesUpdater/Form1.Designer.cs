@@ -33,11 +33,14 @@
             this.seriesTitleLabel = new System.Windows.Forms.Label();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.notifyIconContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.értesítésekKüldéseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.autorunStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.sendNotificationsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.RunOnStartupToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addButton = new System.Windows.Forms.Button();
+            this.imdbLanguageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.defaultLanguageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.customLanguageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.notifyIconContextMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -64,26 +67,31 @@
             // notifyIconContextMenu
             // 
             this.notifyIconContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.értesítésekKüldéseToolStripMenuItem,
-            this.autorunStripMenuItem,
+            this.imdbLanguageToolStripMenuItem,
+            this.sendNotificationsToolStripMenuItem,
+            this.RunOnStartupToolStripMenuItem,
             this.toolStripSeparator1,
             this.exitToolStripMenuItem});
             this.notifyIconContextMenu.Name = "notifyIconControlManagementMenu";
-            this.notifyIconContextMenu.Size = new System.Drawing.Size(222, 76);
+            this.notifyIconContextMenu.Size = new System.Drawing.Size(222, 98);
             this.notifyIconContextMenu.MouseUp += new System.Windows.Forms.MouseEventHandler(this.notifyIconControlManagementMenu_MouseUp);
             // 
-            // értesítésekKüldéseToolStripMenuItem
+            // sendNotificationsToolStripMenuItem
             // 
-            this.értesítésekKüldéseToolStripMenuItem.Name = "értesítésekKüldéseToolStripMenuItem";
-            this.értesítésekKüldéseToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
-            this.értesítésekKüldéseToolStripMenuItem.Text = "Értesítések küldése";
+            this.sendNotificationsToolStripMenuItem.Checked = true;
+            this.sendNotificationsToolStripMenuItem.CheckOnClick = true;
+            this.sendNotificationsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.sendNotificationsToolStripMenuItem.Name = "sendNotificationsToolStripMenuItem";
+            this.sendNotificationsToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
+            this.sendNotificationsToolStripMenuItem.Text = "Értesítések küldése";
+            this.sendNotificationsToolStripMenuItem.Click += new System.EventHandler(this.notificationContextMenuItem_Click);
             // 
-            // autorunStripMenuItem
+            // RunOnStartupToolStripMenuItem
             // 
-            this.autorunStripMenuItem.Name = "autorunStripMenuItem";
-            this.autorunStripMenuItem.Size = new System.Drawing.Size(221, 22);
-            this.autorunStripMenuItem.Text = "Indítás a Windowszal együtt";
-            this.autorunStripMenuItem.Click += new System.EventHandler(this.autorunStripMenuItem_Click);
+            this.RunOnStartupToolStripMenuItem.Name = "RunOnStartupToolStripMenuItem";
+            this.RunOnStartupToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
+            this.RunOnStartupToolStripMenuItem.Text = "Indítás a Windowszal együtt";
+            this.RunOnStartupToolStripMenuItem.Click += new System.EventHandler(this.autorunStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
@@ -107,13 +115,38 @@
             this.addButton.UseVisualStyleBackColor = true;
             this.addButton.Click += new System.EventHandler(this.addButton_Click);
             // 
+            // imdbLanguageToolStripMenuItem
+            // 
+            this.imdbLanguageToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.defaultLanguageToolStripMenuItem,
+            this.customLanguageToolStripMenuItem});
+            this.imdbLanguageToolStripMenuItem.Name = "imdbLanguageToolStripMenuItem";
+            this.imdbLanguageToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
+            this.imdbLanguageToolStripMenuItem.Text = "IMDB Nyelv";
+            // 
+            // defaultLanguageToolStripMenuItem
+            // 
+            this.defaultLanguageToolStripMenuItem.Checked = true;
+            this.defaultLanguageToolStripMenuItem.CheckOnClick = true;
+            this.defaultLanguageToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.defaultLanguageToolStripMenuItem.Name = "defaultLanguageToolStripMenuItem";
+            this.defaultLanguageToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.defaultLanguageToolStripMenuItem.Text = "Alapértelmezett";
+            // 
+            // customLanguageToolStripMenuItem
+            // 
+            this.customLanguageToolStripMenuItem.Name = "customLanguageToolStripMenuItem";
+            this.customLanguageToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.customLanguageToolStripMenuItem.Text = "Saját";
+            this.customLanguageToolStripMenuItem.Click += new System.EventHandler(this.customLanguageToolStripMenuItem_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(136, 42);
+            this.ClientSize = new System.Drawing.Size(138, 40);
             this.ControlBox = false;
             this.Controls.Add(this.addButton);
             this.Controls.Add(this.seriesTitleLabel);
@@ -142,9 +175,12 @@
         private System.Windows.Forms.Button addButton;
         private System.Windows.Forms.ContextMenuStrip notifyIconContextMenu;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem autorunStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem RunOnStartupToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripMenuItem értesítésekKüldéseToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem sendNotificationsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem imdbLanguageToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem defaultLanguageToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem customLanguageToolStripMenuItem;
     }
 }
 

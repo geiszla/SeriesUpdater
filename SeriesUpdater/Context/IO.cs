@@ -67,5 +67,47 @@ namespace SeriesUpdater.Context
             writeData.WriteLine("{0};{1};{2};{3};{4};{5}", name, imdbId, lastViewed, lastEpisode, nextEpisode, nextAirDate);
             writeData.Close();
         }
+
+        public static void readSettings()
+        {
+            if (File.Exists(MainProgram.Variables.dataPath + @"\settings.dat"))
+            {
+                StreamReader readSettings = new StreamReader(MainProgram.Variables.dataPath + @"\settings.dat");
+
+                while (readSettings.Peek() > -1)
+                {
+                    string[] currRow = readSettings.ReadLine().Split('=');
+
+                    foreach (string[] option in Context.Settings.settings)
+                    {
+                        if (currRow[0] == option[0])
+                        {
+                            option[1] = currRow[1];
+                        }
+                    }
+                }
+
+                readSettings.Close();
+            }
+        }
+
+        public static void writeSettings()
+        {
+            StreamWriter writeSettings = new StreamWriter(MainProgram.Variables.dataPath + @"\settings.dat", false);
+
+            foreach (string[] option in Context.Settings.settings)
+            {
+                writeSettings.WriteLine(option[0] + "=" + option[1]);
+            }
+
+            writeSettings.Close();
+        }
+
+        public static void writeSettings(string optionName, string optionValue)
+        {
+            StreamWriter writeSettings = new StreamWriter(MainProgram.Variables.dataPath + @"\settings.dat", false);
+            writeSettings.WriteLine(optionName + "=" + optionValue);
+            writeSettings.Close();
+        }
     }
 }

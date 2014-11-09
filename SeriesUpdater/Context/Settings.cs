@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 
@@ -6,16 +7,18 @@ namespace SeriesUpdater.Context
 {
     class Settings
     {
-        public static bool setAutorun(bool addAnyway)
+        public static List<string[]> settings = new List<string[]> { new string[] { "SendNotifications", "True" }, new string[] { "RunOnStartup", "False" } };
+
+        public static bool setAutorun(bool isAdd)
         {
             RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
 
-            if (!isStartupItem() || addAnyway)
+            if (isAdd || (!isStartupItem() && !isAdd))
             {
-                if (!File.Exists(MainProgram.Variables.dataPath + @"\MainProgram.exe") && MessageBox.Show("Szeretné, ha a programról készülne egy másolat? Így a file törlése esetén is lehetséges a Windows indításakor való futtatás.", "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (!File.Exists(MainProgram.Variables.dataPath + @"\SeriesUpdater.exe") && MessageBox.Show("Szeretné, ha a programról készülne egy másolat? Így a file törlése esetén is lehetséges a Windows indításakor való futtatás.", "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    File.Copy(Application.ExecutablePath.ToString(), MainProgram.Variables.dataPath + @"\MainProgram.exe");
-                    registryKey.SetValue("MainProgram", MainProgram.Variables.dataPath + @"\MainProgram.exe");
+                    File.Copy(Application.ExecutablePath.ToString(), MainProgram.Variables.dataPath + @"\SeriesUpdater.exe");
+                    registryKey.SetValue("MainProgram", MainProgram.Variables.dataPath + @"\SeriesUpdater.exe");
                 }
 
                 else
@@ -59,6 +62,12 @@ namespace SeriesUpdater.Context
             {
                 return true;
             }
+        }
+
+        public static void changeSettings(int number, string value)
+        {
+            Context.Settings.settings[number][1] = value;
+            Context.IO.writeSettings(Context.Settings.settings[number][0], value);
         }
     }
 }

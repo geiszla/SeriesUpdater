@@ -1,6 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace SeriesUpdater
@@ -9,25 +11,27 @@ namespace SeriesUpdater
     {
         public Form1()
         {
+            checkForOtherInstance();
             InitializeComponent();
 
             MainProgram.Variables.notifyIcon = this.notifyIcon;
             MainProgram.Variables.mainForm = this;
 
-            autorunStripMenuItem.Checked = Context.Settings.isStartupItem();
+            RunOnStartupToolStripMenuItem.Checked = Context.Settings.isStartupItem();
             WireAllControls(this);
         }
 
         #region Form Events
         private void Form1_Load(object sender, EventArgs e)
         {
+            Context.IO.readSettings();
             Context.IO.readSeries();
 
             if (MainProgram.Variables.isFirst)
             {
                 if (!Context.Settings.isStartupItem() && MessageBox.Show("Szeretné, hogy a program automatikusan elinduljon a Windows indításakor?", "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    autorunStripMenuItem.Checked = Context.Settings.setAutorun(true);
+                    RunOnStartupToolStripMenuItem.Checked = Context.Settings.setAutorun(true);
                 }
             }
 
@@ -49,6 +53,7 @@ namespace SeriesUpdater
             }
 
             applyData(false);
+            applySettings();
             updateLabels(false);
 
             if (MainProgram.Variables.seriesList.Count > 0)
@@ -57,7 +62,7 @@ namespace SeriesUpdater
                 Context.Notification.showNotification("Sikeres frissítés", text, 3000);
             }
 
-            Context.Notification.getComingSeries();
+            Context.Notification.getComingSeries(false);
 
             notifyIcon.MouseUp += notifyIcon_MouseClick;
         }
@@ -78,6 +83,7 @@ namespace SeriesUpdater
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
+            Context.IO.writeSettings();
             notifyIcon.Visible = false;
         }
 
@@ -89,6 +95,8 @@ namespace SeriesUpdater
             Form2 addForm = new Form2();
             addForm.FormClosed += addForm_FormClosed;
             addForm.ShowDialog();
+
+            Context.Notification.getComingSeries(true);
         }
 
         private void addForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -179,14 +187,39 @@ namespace SeriesUpdater
 
         private void autorunStripMenuItem_Click(object sender, EventArgs e)
         {
-            autorunStripMenuItem.Checked = Context.Settings.setAutorun(false);
+            RunOnStartupToolStripMenuItem.Checked = Context.Settings.setAutorun(false);
+        }
+
+        private void notificationContextMenuItem_Click(object sender, EventArgs e)
+        {
+            Context.Settings.changeSettings(0, sendNotificationsToolStripMenuItem.Checked.ToString());
+        }
+
+        private void customLanguageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string message = "Ahhoz hogy megváltoztasd a megjelenő IMDB címek nyelvét, először be kell ezt állítanod a saját IMDB fiókodban (https://secure.imdb.com/register-imdb/siteprefs) a címek nyelvét, ezután itt be kell jelentkezned a Google fiókodat használva. Szeretnél most bejelentkezni?";
+
+            if (MessageBox.Show(message, "IMDB Nyelv módosítás", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+            {
+                Form4 loginForm = new Form4();
+                loginForm.ShowDialog();
+            }
         }
         #endregion
 
         #region Functions
+        void checkForOtherInstance()
+        {
+            if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location)).Length > 1)
+            {
+                Process.GetCurrentProcess().Kill();
+            }
+        }
+
         void placeForm(bool isFormClosed, bool isNotifyIconClicked)
         {
             int xPosition = 1700;
+
             if (isNotifyIconClicked)
             {
                 xPosition = Cursor.Position.X;
@@ -278,6 +311,27 @@ namespace SeriesUpdater
             }
 
             placeForm(false, false);
+        }
+
+        void applySettings()
+        {
+            foreach (string[] option in Context.Settings.settings)
+            {
+                ToolStripMenuItem currOption = (ToolStripMenuItem)notifyIconContextMenu.Items.Find(option[0] + "ToolStripMenuItem", true)[0];
+
+                if (option[0] == "RunOnStartup")
+                {
+                    if (Convert.ToBoolean(option[1]) && !Context.Settings.isStartupItem())
+                    {
+                        Context.Settings.setAutorun(true);
+                    }
+
+                    else if (!Convert.ToBoolean(option[1]) && Context.Settings.isStartupItem())
+                    {
+                        Context.Settings.setAutorun(false);
+                    }
+                }
+            }
         }
 
         void editLastViewedLabel(object sender)
@@ -404,6 +458,11 @@ namespace SeriesUpdater
             this.nextEpisode = nextEpisode;
             this.nextEpisodeAirDate = nextEpisodeAirDate;
         }
+    }
+
+    public class DateAndTime
+    {
+
     }
     #endregion
 }

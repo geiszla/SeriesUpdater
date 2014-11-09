@@ -117,5 +117,25 @@ namespace SeriesUpdater.MainProgram
                 return default(DateTime).ToString("H:mm");
             }
         }
+
+        public static void login()
+        {
+            /*
+            string imdbPage = requestPage("https://secure.imdb.com/oauth/login");
+
+            string pattern = "onclick=\"window.open\\('(.*)',";
+            List<string> links = new List<string>();
+            foreach (Match match in Regex.Matches(imdbPage, pattern))
+            {
+                links.Add(match.Groups[1].Value);
+            }
+
+            OpenIdRelyingParty OIDRP = new OpenIdRelyingParty();
+            var str = OIDRP.GetResponse();
+            if (str != null)
+            {
+            }
+            */
+        }
     }
 }

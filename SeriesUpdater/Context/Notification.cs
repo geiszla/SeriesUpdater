@@ -49,7 +49,7 @@ namespace SeriesUpdater.Context
             }
         }
 
-        public static void getComingSeries()
+        public static void getComingSeries(bool isAdd)
         {
             List<Series> todaySeries = new List<Series>();
             List<Series> tomorrowSeries = new List<Series>();
