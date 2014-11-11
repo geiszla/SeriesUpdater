@@ -46,7 +46,7 @@ namespace SeriesUpdater
 
             string id = resultTable.SelectedRows[0].Cells[0].Value.ToString();
             string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes";
-            MainProgram.Variables.selectedLastEpisodes = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url), false);
+            MainProgram.Variables.selectedLastEpisodes = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url));
 
             if (MainProgram.Variables.selectedLastEpisodes[0] != 0)
             {

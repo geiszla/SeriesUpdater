@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Windows.Forms;
 
 namespace SeriesUpdater.Context
 {
@@ -62,7 +63,8 @@ namespace SeriesUpdater.Context
             string lastViewed = "S" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastViewed[0] + "E" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastViewed[1];
             string lastEpisode = "S" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastEpisode[0] + "E" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastEpisode[1];
             string nextEpisode = "S" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].nextEpisode[0] + "E" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].nextEpisode[1];
-            string nextAirDate = MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].nextEpisodeAirDate.ToString("d");
+            
+            string nextAirDate = MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].nextEpisodeAirDate.ToString();
 
             writeData.WriteLine("{0};{1};{2};{3};{4};{5}", name, imdbId, lastViewed, lastEpisode, nextEpisode, nextAirDate);
             writeData.Close();

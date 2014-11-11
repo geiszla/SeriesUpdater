@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.IO;
 using System.Net;
 using System.Text.RegularExpressions;
@@ -49,7 +50,7 @@ namespace SeriesUpdater.MainProgram
             {
                 string id = MainProgram.Variables.seriesList[i].imdbId;
                 string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes";
-                MainProgram.Variables.seriesList[i].lastEpisode = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url), true);
+                MainProgram.Variables.seriesList[i].lastEpisode = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url));
             }
         }
 
@@ -116,6 +117,15 @@ namespace SeriesUpdater.MainProgram
             {
                 return default(DateTime).ToString("H:mm");
             }
+        }
+
+        public static string getNameById(string imdbId)
+        {
+            string requestURL = "http://www.omdbapi.com/?i=tt" + imdbId + "&plot=short&r=json";
+            string content = requestPage(requestURL);
+
+            JObject json = JObject.Parse(content);
+            return json["Title"].ToString();
         }
 
         public static void login()

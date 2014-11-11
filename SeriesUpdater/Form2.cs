@@ -102,7 +102,7 @@ namespace SeriesUpdater
                 Cursor.Current = Cursors.WaitCursor;
                 string url = "http://www.imdb.com/title/" + "tt" + Convert.ToInt32(imdbIdTextBox.Text) + "/episodes";
                 string HTMLText = MainProgram.WebRequest.requestPage(url);
-                int[] latestEp = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(imdbIdTextBox.Text, HTMLText, false);
+                int[] latestEp = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(imdbIdTextBox.Text, HTMLText);
 
                 if (HTMLText != "")
                 {

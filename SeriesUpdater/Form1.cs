@@ -50,6 +50,7 @@ namespace SeriesUpdater
             if (MainProgram.Variables.seriesList.Count > 0)
             {
                 MainProgram.WebRequest.getLatestEpisodes(false);
+                Context.IO.writeSeries();
             }
 
             applyData(false);
@@ -89,8 +90,6 @@ namespace SeriesUpdater
 
         private void addButton_Click(object sender, EventArgs e)
         {
-            // string airTime = MainProgram.WebRequest.getAirTimeByName("The Walking Dead");
-
             MainProgram.Variables.isAddFormOpened = true;
             Form2 addForm = new Form2();
             addForm.FormClosed += addForm_FormClosed;
@@ -300,7 +299,7 @@ namespace SeriesUpdater
 
                 if (MainProgram.Variables.seriesList[i].lastEpisode[0] > MainProgram.Variables.seriesList[i].lastViewed[0] || (MainProgram.Variables.seriesList[i].lastEpisode[0] == MainProgram.Variables.seriesList[i].lastViewed[0] && MainProgram.Variables.seriesList[i].lastEpisode[1] > MainProgram.Variables.seriesList[i].lastViewed[1]))
                 {
-                    lastEpLabel.Font = new Font(lastEpLabel.Font, FontStyle.Bold | FontStyle.Underline);
+                    lastEpLabel.Font = new Font(lastEpLabel.Font, FontStyle.Bold);
                     lastEpLabel.Width = lastEpLabel.PreferredWidth;
 
                     /*
