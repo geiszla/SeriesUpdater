@@ -35,35 +35,12 @@ namespace SeriesUpdater
                 }
             }
 
-            if (MainProgram.Variables.seriesList.Count > 0)
-            {
-                string text = "Frissítés folyamatban. A frissítés alatt nem tudod megnyitni a programot.";
-                Context.Notification.showNotification("Frissítés", text, 3000);
-            }
+            updateSeries();
 
-            else
-            {
-                string text = "Az ikonra kattintva nyithatja meg a programot, adhat hozzá, illetve a későbbiekben törölhet sorozatokat.";
-                Context.Notification.showNotification("Sorozat figyelő", text, 3000);
-            }
-
-            if (MainProgram.Variables.seriesList.Count > 0)
-            {
-                MainProgram.WebRequest.getLatestEpisodes(false);
-                Context.IO.writeSeries();
-            }
-
-            applyData(false);
-            applySettings();
-            updateLabels(false);
-
-            if (MainProgram.Variables.seriesList.Count > 0)
-            {
-                string text = "Sikeresen frissültek a legújabb epizódok. Most már megnyithatja a programot.";
-                Context.Notification.showNotification("Sikeres frissítés", text, 3000);
-            }
-
-            Context.Notification.getComingSeries(false);
+            System.Timers.Timer refreshTimer = new System.Timers.Timer();
+            refreshTimer.Elapsed += refreshTimer_Elapsed;
+            refreshTimer.Interval = 30 * 60 * 1000;
+            refreshTimer.Enabled = true;
 
             notifyIcon.MouseUp += notifyIcon_MouseClick;
         }
@@ -94,8 +71,6 @@ namespace SeriesUpdater
             Form2 addForm = new Form2();
             addForm.FormClosed += addForm_FormClosed;
             addForm.ShowDialog();
-
-            Context.Notification.getComingSeries(true);
         }
 
         private void addForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -154,6 +129,11 @@ namespace SeriesUpdater
         private void constrols_Click(object sender, EventArgs e)
         {
             this.InvokeOnClick(this, EventArgs.Empty);
+        }
+
+        void refreshTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            updateSeries();
         }
         #endregion
 
@@ -235,6 +215,39 @@ namespace SeriesUpdater
             }
 
             Top = Screen.PrimaryScreen.WorkingArea.Height - Height - 10;
+        }
+
+        void updateSeries()
+        {
+            if (MainProgram.Variables.seriesList.Count > 0)
+            {
+                string text = "Frissítés folyamatban. A frissítés alatt nem tudod megnyitni a programot.";
+                Context.Notification.showNotification("Frissítés", text, 3000);
+            }
+
+            else
+            {
+                string text = "Az ikonra kattintva nyithatja meg a programot, adhat hozzá, illetve a későbbiekben törölhet sorozatokat.";
+                Context.Notification.showNotification("Sorozat figyelő", text, 3000);
+            }
+
+            if (MainProgram.Variables.seriesList.Count > 0)
+            {
+                MainProgram.WebRequest.getLatestEpisodes(false);
+                Context.IO.writeSeries();
+            }
+
+            applyData(false);
+            applySettings();
+            updateLabels(false);
+
+            if (MainProgram.Variables.seriesList.Count > 0)
+            {
+                string text = "Sikeresen frissültek a legújabb epizódok. Most már megnyithatja a programot.";
+                Context.Notification.showNotification("Sikeres frissítés", text, 3000);
+            }
+
+            Context.Notification.getComingSeries(false);
         }
 
         void applyData(bool isAdd)
@@ -446,8 +459,10 @@ namespace SeriesUpdater
         public int[] lastEpisode;
         public int[] nextEpisode;
         public DateTime nextEpisodeAirDate;
+        public int dateKnown;
+        public int notificationSent = 0;
 
-        public Series(int id, string name, string imdbId, int[] lastViewed, int[] lastEpisode, int[] nextEpisode, DateTime nextEpisodeAirDate)
+        public Series(int id, string name, string imdbId, int[] lastViewed, int[] lastEpisode, int[] nextEpisode, DateTime nextEpisodeAirDate, int dateKnown, int notificationSent)
         {
             this.id = id;
             this.name = name;
@@ -456,12 +471,19 @@ namespace SeriesUpdater
             this.lastEpisode = lastEpisode;
             this.nextEpisode = nextEpisode;
             this.nextEpisodeAirDate = nextEpisodeAirDate;
+            this.dateKnown = dateKnown;
+            this.notificationSent = notificationSent;
         }
-    }
 
-    public class DateAndTime
-    {
-
+        public Series(string name, string imdbId, int[] lastEpisode, int[] nextEpisode, DateTime nextEpisodeAirDate, int dateKnown)
+        {
+            this.name = name;
+            this.imdbId = imdbId;
+            this.lastEpisode = lastEpisode;
+            this.nextEpisode = nextEpisode;
+            this.nextEpisodeAirDate = nextEpisodeAirDate;
+            this.dateKnown = dateKnown;
+        }
     }
     #endregion
 }

@@ -26,7 +26,9 @@ namespace SeriesUpdater.Context
                         int[] lastEpisode = MainProgram.ProcessData.convertEpisodeString(currRow[3]);
                         int[] nextEpisode = MainProgram.ProcessData.convertEpisodeString(currRow[4]);
                         DateTime nextEpisodeAirDate = Convert.ToDateTime(currRow[5]);
-                        Series currSeries = new Series(id, name, imdbId, lastViewed, lastEpisode, nextEpisode, nextEpisodeAirDate);
+                        int dateKnown = Convert.ToInt32(currRow[6]);
+                        int notificationSent = Convert.ToInt32(currRow[7]);
+                        Series currSeries = new Series(id, name, imdbId, lastViewed, lastEpisode, nextEpisode, nextEpisodeAirDate, dateKnown, notificationSent);
                         MainProgram.Variables.seriesList.Add(currSeries);
                     }
 
@@ -45,12 +47,14 @@ namespace SeriesUpdater.Context
             {
                 string name = MainProgram.Variables.seriesList[i].name;
                 string imdbId = MainProgram.Variables.seriesList[i].imdbId;
-                string lastViewed = "S" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastViewed[0] + "E" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastViewed[1];
-                string lastEpisode = "S" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastEpisode[0] + "E" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastEpisode[1];
-                string nextEpisode = "S" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].nextEpisode[0] + "E" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].nextEpisode[1];
+                string lastViewed = "S" + MainProgram.Variables.seriesList[i].lastViewed[0] + "E" + MainProgram.Variables.seriesList[i].lastViewed[1];
+                string lastEpisode = "S" + MainProgram.Variables.seriesList[i].lastEpisode[0] + "E" + MainProgram.Variables.seriesList[i].lastEpisode[1];
+                string nextEpisode = "S" + MainProgram.Variables.seriesList[i].nextEpisode[0] + "E" + MainProgram.Variables.seriesList[i].nextEpisode[1];
                 DateTime nextAirDate = MainProgram.Variables.seriesList[i].nextEpisodeAirDate;
+                int dateKnown = MainProgram.Variables.seriesList[i].dateKnown;
+                int notificationSent = MainProgram.Variables.seriesList[i].notificationSent;
 
-                writeData.WriteLine("{0};{1};{2};{3};{4};{5}", name, imdbId, lastViewed, lastEpisode, nextEpisode, nextAirDate);
+                writeData.WriteLine("{0};{1};{2};{3};{4};{5};{6};{7}", name, imdbId, lastViewed, lastEpisode, nextEpisode, nextAirDate, dateKnown, notificationSent);
             }
 
             writeData.Close();
@@ -65,8 +69,10 @@ namespace SeriesUpdater.Context
             string nextEpisode = "S" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].nextEpisode[0] + "E" + MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].nextEpisode[1];
             
             string nextAirDate = MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].nextEpisodeAirDate.ToString();
+            int dateKnown = MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].dateKnown;
+            int notificationSent = MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].notificationSent;
 
-            writeData.WriteLine("{0};{1};{2};{3};{4};{5}", name, imdbId, lastViewed, lastEpisode, nextEpisode, nextAirDate);
+            writeData.WriteLine("{0};{1};{2};{3};{4};{5};{6};{7}", name, imdbId, lastViewed, lastEpisode, nextEpisode, nextAirDate, dateKnown, notificationSent);
             writeData.Close();
         }
 

@@ -41,14 +41,19 @@ namespace SeriesUpdater
         private void selectButton_Click(object sender, EventArgs e)
         {
             Cursor.Current = Cursors.WaitCursor;
-            MainProgram.Variables.selectedSeries[0] = resultTable.SelectedRows[0].Cells[0].Value.ToString();
-            MainProgram.Variables.selectedSeries[1] = resultTable.SelectedRows[0].Cells[1].Value.ToString();
+            string imdbId = resultTable.SelectedRows[0].Cells[0].Value.ToString();
+            string name = resultTable.SelectedRows[0].Cells[1].Value.ToString();
+
+            MainProgram.Variables.selectedSeries = new Series(name, imdbId, new int[2], new int[2], new DateTime(), 3);
 
             string id = resultTable.SelectedRows[0].Cells[0].Value.ToString();
             string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes";
-            MainProgram.Variables.selectedLastEpisodes = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url));
 
-            if (MainProgram.Variables.selectedLastEpisodes[0] != 0)
+            MainProgram.ProcessHTML.currNextAirDate = new DateTime();
+            MainProgram.ProcessHTML.currNextDateIndex = 0;
+            MainProgram.Variables.selectedSeries.lastEpisode = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url), true);
+
+            if (MainProgram.Variables.selectedSeries.lastEpisode[0] != 0)
             {
                 MainProgram.Variables.isSelectedSeries = true;
                 this.Close();

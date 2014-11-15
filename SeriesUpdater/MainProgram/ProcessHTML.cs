@@ -6,8 +6,8 @@ namespace SeriesUpdater.MainProgram
 {
     class ProcessHTML
     {
-        static DateTime currNextAirDate = new DateTime();
-        static int currNextDateIndex = 0;
+        public static DateTime currNextAirDate = new DateTime();
+        public static int currNextDateIndex = 0;
 
         public static void getInnerHTMLByTagName(int startSearchIndex, string HTMLText, string tagName)
         {
@@ -59,7 +59,7 @@ namespace SeriesUpdater.MainProgram
             return name;
         }
 
-        public static int[] getLatestEpisodeFromHTML(string id, string HTMLText)
+        public static int[] getLatestEpisodeFromHTML(string id, string HTMLText, bool isAdd)
         {
             if (HTMLText == "")
             {
@@ -80,21 +80,27 @@ namespace SeriesUpdater.MainProgram
             DateTime latestAirDate = new DateTime();
             DateTime nextAirDate = currNextAirDate;
             int nextDateIndex = currNextDateIndex;
+            int dateKnown = 3;
             int latestDateIndex = 0;
             string innerHTML = "";
             while ((innerHTML = MainProgram.ProcessHTML.getInnerHTMLByAttribute(startIndex, HTMLText, "airdate", "class")[0]) != default(string))
             {
                 int endIndex = Convert.ToInt32(MainProgram.ProcessHTML.getInnerHTMLByAttribute(startIndex, HTMLText, "airdate", "class")[1]);
                 DateTime airDate = new DateTime();
-                try
+                if (innerHTML.Trim() != "")
                 {
-                    airDate = Convert.ToDateTime(innerHTML);
-                }
+                    try
+                    {
+                        airDate = Convert.ToDateTime(innerHTML);
+                    }
 
-                catch
-                {
-                    airDate = Convert.ToDateTime(innerHTML.Split('\n')[1] + ".12.31");
+                    catch
+                    {
+                        airDate = Convert.ToDateTime(innerHTML.Split('\n')[1] + ".12.31");
+                        dateKnown = 1;
+                    }
                 }
+                
 
                 if (airDate < DateTime.Now)
                 {
@@ -116,13 +122,24 @@ namespace SeriesUpdater.MainProgram
             {
                 if (currNextAirDate != nextAirDate)
                 {
-                    for (int i = 0; i < MainProgram.Variables.seriesList.Count; i++)
+                    if (!isAdd)
                     {
-                        if (MainProgram.Variables.seriesList[i].imdbId == id)
+                        for (int i = 0; i < MainProgram.Variables.seriesList.Count; i++)
                         {
-                            MainProgram.Variables.seriesList[i].nextEpisodeAirDate = nextAirDate;
-                            MainProgram.Variables.seriesList[i].nextEpisode = MainProgram.ProcessHTML.getEpisodeByDateIndex(HTMLText, nextDateIndex);
+                            if (MainProgram.Variables.seriesList[i].imdbId == id)
+                            {
+                                MainProgram.Variables.seriesList[i].nextEpisodeAirDate = nextAirDate;
+                                MainProgram.Variables.seriesList[i].dateKnown = dateKnown;
+                                MainProgram.Variables.seriesList[i].nextEpisode = MainProgram.ProcessHTML.getEpisodeByDateIndex(HTMLText, nextDateIndex);
+                            }
                         }
+                    }
+
+                    else
+                    {
+                        MainProgram.Variables.selectedSeries.nextEpisodeAirDate = nextAirDate;
+                        MainProgram.Variables.selectedSeries.dateKnown = dateKnown;
+                        MainProgram.Variables.selectedSeries.nextEpisode = MainProgram.ProcessHTML.getEpisodeByDateIndex(HTMLText, nextDateIndex);
                     }
                 }
 
@@ -133,20 +150,28 @@ namespace SeriesUpdater.MainProgram
             if (latestAirDate == default(DateTime))
             {
                 string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes" + previousSeasonNumber;
-                return getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url));
+                return getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url), isAdd);
             }
 
             else
             {
+                /*
                 for (int i = 0; i < MainProgram.Variables.seriesList.Count; i++)
                 {
                     if (MainProgram.Variables.seriesList[i].imdbId == id)
                     {
                         string name = MainProgram.WebRequest.getNameById(MainProgram.Variables.seriesList[i].imdbId);
-                        TimeSpan time = TimeSpan.Parse(MainProgram.WebRequest.getAirTimeByName(name));
-                        MainProgram.Variables.seriesList[i].nextEpisodeAirDate += time;
+                        string dateTime = MainProgram.WebRequest.getAirTimeByName(name);
+
+                        if (Convert.ToDateTime(dateTime) != default(DateTime))
+                        {
+                            TimeSpan time = TimeSpan.Parse(dateTime);
+                            MainProgram.Variables.seriesList[i].nextEpisodeAirDate += time;
+                            MainProgram.Variables.seriesList[i].dateKnown = 6;
+                        }
                     }
                 }
+                 */
 
                 return MainProgram.ProcessHTML.getEpisodeByDateIndex(HTMLText, latestDateIndex);
             }

@@ -18,6 +18,7 @@ namespace SeriesUpdater
             MainProgram.Variables.isAddedSeries = false;
             this.ActiveControl = nameTextBox;
         }
+
         private void cancelButton_Click(object sender, EventArgs e)
         {
             this.Close();
@@ -65,6 +66,7 @@ namespace SeriesUpdater
                 }
 
                 addSeries();
+                Context.Notification.getComingSeries(true);
             }
         }
 
@@ -102,7 +104,9 @@ namespace SeriesUpdater
                 Cursor.Current = Cursors.WaitCursor;
                 string url = "http://www.imdb.com/title/" + "tt" + Convert.ToInt32(imdbIdTextBox.Text) + "/episodes";
                 string HTMLText = MainProgram.WebRequest.requestPage(url);
-                int[] latestEp = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(imdbIdTextBox.Text, HTMLText);
+                MainProgram.ProcessHTML.currNextAirDate = new DateTime();
+                MainProgram.ProcessHTML.currNextDateIndex = 0;
+                int[] latestEp = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(imdbIdTextBox.Text, HTMLText, false);
 
                 if (HTMLText != "")
                 {
@@ -121,9 +125,9 @@ namespace SeriesUpdater
         {
             if (MainProgram.Variables.isSelectedSeries)
             {
-                imdbIdTextBox.Text = MainProgram.Variables.selectedSeries[0];
-                nameTextBox.Text = MainProgram.Variables.selectedSeries[1];
-                lastViewedEpisodeTextBox.Text = "S" + MainProgram.Variables.selectedLastEpisodes[0] + "E" + MainProgram.Variables.selectedLastEpisodes[1];
+                imdbIdTextBox.Text = MainProgram.Variables.selectedSeries.imdbId;
+                nameTextBox.Text = MainProgram.Variables.selectedSeries.name;
+                lastViewedEpisodeTextBox.Text = "S" + MainProgram.Variables.selectedSeries.lastEpisode[0] + "E" + MainProgram.Variables.selectedSeries.lastEpisode[1];
             }
         }
 
@@ -167,29 +171,52 @@ namespace SeriesUpdater
 
         void addSeries()
         {
-            Cursor.Current = Cursors.WaitCursor;
-
-            Series newSeries = new Series(MainProgram.Variables.seriesList.Count, nameTextBox.Text, imdbIdTextBox.Text, MainProgram.ProcessData.convertEpisodeString(lastViewedEpisodeTextBox.Text), new int[2], new int[2], new DateTime());
-            MainProgram.Variables.seriesList.Add(newSeries);
-
-            MainProgram.WebRequest.getLatestEpisodes(true);
-
-            if (MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastEpisode[0] == 0)
+            string imdbId = imdbIdTextBox.Text;
+            bool isFound = false;
+            foreach (Series currSeries in MainProgram.Variables.seriesList)
             {
-                return;
+                if (imdbId == currSeries.imdbId)
+                {
+                    isFound = true;
+                }
             }
 
-            if (!Directory.Exists(MainProgram.Variables.dataPath))
+            if (!isFound)
             {
-                Directory.CreateDirectory(MainProgram.Variables.dataPath);
+                Cursor.Current = Cursors.WaitCursor;
+
+                Series newSeries = new Series(MainProgram.Variables.seriesList.Count, nameTextBox.Text, imdbId, MainProgram.ProcessData.convertEpisodeString(lastViewedEpisodeTextBox.Text), new int[2], new int[2], new DateTime(), 3, 0);
+                MainProgram.Variables.seriesList.Add(newSeries);
+
+                if (MainProgram.Variables.selectedSeries.imdbId == newSeries.imdbId)
+                {
+                    newSeries.lastEpisode = MainProgram.Variables.selectedSeries.lastEpisode;
+                    newSeries.nextEpisode = MainProgram.Variables.selectedSeries.nextEpisode;
+                    newSeries.nextEpisodeAirDate = MainProgram.Variables.selectedSeries.nextEpisodeAirDate;
+                }
+
+                if (MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastEpisode[0] == 0)
+                {
+                    return;
+                }
+
+                if (!Directory.Exists(MainProgram.Variables.dataPath))
+                {
+                    Directory.CreateDirectory(MainProgram.Variables.dataPath);
+                }
+
+                Context.IO.writeSeries(newSeries.name, newSeries.imdbId);
+
+                Cursor.Current = Cursors.Arrow;
+                MainProgram.Variables.isAddedSeries = true;
+
+                this.Close();
             }
 
-            Context.IO.writeSeries(newSeries.name, newSeries.imdbId);
-
-            Cursor.Current = Cursors.Arrow;
-            MainProgram.Variables.isAddedSeries = true;
-
-            this.Close();
+            else
+            {
+                MessageBox.Show("Ez a sorozat már benne van a listában, kérem válasszon egy másikat!", "Ismétlődő sorozat", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         void checkEmptyBoxes()

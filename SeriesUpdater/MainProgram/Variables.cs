@@ -17,8 +17,8 @@ namespace SeriesUpdater.MainProgram
         public static bool isAddedSeries = false;
         public static bool keyDownFired = false;
 
-        public static string[] selectedSeries = new string[2];
-        public static int[] selectedLastEpisodes = new int[2];
+
+        public static Series selectedSeries;
         public static bool isSelectedSeries = false;
         public static string searchQuery = "";
 

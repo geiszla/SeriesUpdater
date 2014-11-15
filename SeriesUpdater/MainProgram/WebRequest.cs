@@ -50,7 +50,9 @@ namespace SeriesUpdater.MainProgram
             {
                 string id = MainProgram.Variables.seriesList[i].imdbId;
                 string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes";
-                MainProgram.Variables.seriesList[i].lastEpisode = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url));
+                MainProgram.ProcessHTML.currNextAirDate = new DateTime();
+                MainProgram.ProcessHTML.currNextDateIndex = 0;
+                MainProgram.Variables.seriesList[i].lastEpisode = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url), isAdd);
             }
         }
 

@@ -17,35 +17,37 @@ namespace SeriesUpdater.Context
             notifyIcon.ShowBalloonTip(timeout);
         }
 
-        public static void showNewEpisodeNotification(string when, List<Series> comingSeries)
+        public static void showNewEpisodeNotification(string day, List<Series> comingSeries)
         {
             if (comingSeries.Count == 1)
             {
-                string text = when + " új rész jelenik meg a következő sorozatból: " + comingSeries[0].name;
-                showNotification("Új epizód", text, 5000);
+                string time = comingSeries[0].nextEpisodeAirDate.ToString("HH:mm");
+                string text = day + (time != "00:00" ? time + "-kor" : "") + "új rész jelenik meg a(z) " + comingSeries[0].name + " című sorozatból.";
+                showNotification("Új epizód", text, 30000);
             }
 
             else if (comingSeries.Count > 1)
             {
                 string title = "Új epizód (" + comingSeries.Count + ")";
-                string text = when + " új részek jelennek meg a következő sorozatokból: ";
+                string text = day + "új rész jelenik meg a(z) ";
 
                 for (int i = 0; i < comingSeries.Count; i++)
                 {
-                    text += comingSeries[i].name;
+                    text += comingSeries[i].name + " (" + comingSeries[i].nextEpisodeAirDate.ToString("HH:mm") + ")";
 
-                    if (i != comingSeries.Count - 1)
+                    if (i == comingSeries.Count - 2)
+                    {
+                        text += " és a(z) ";
+                    }
+
+                    else if (i != comingSeries.Count - 1)
                     {
                         text += ", ";
                     }
-
-                    else
-                    {
-                        text += ".";
-                    }
                 }
 
-                showNotification(title, text, 5000);
+                text += " című sorozatokból.";
+                showNotification(title, text, 30000);
             }
         }
 
@@ -56,29 +58,30 @@ namespace SeriesUpdater.Context
 
             for (int i = 0; i < MainProgram.Variables.seriesList.Count; i++)
             {
-                int days = MainProgram.Variables.seriesList[i].nextEpisodeAirDate.DayOfYear - DateTime.Now.DayOfYear;
-
-                if (DateTime.Now.Year >= MainProgram.Variables.seriesList[i].nextEpisodeAirDate.Year)
+                if (MainProgram.Variables.seriesList[i].dateKnown >= 3)
                 {
-                    if (days == 0)
-                    {
-                        todaySeries.Add(MainProgram.Variables.seriesList[i]);
-                    }
+                    int days = MainProgram.Variables.seriesList[i].nextEpisodeAirDate.DayOfYear - DateTime.Now.DayOfYear;
 
-                    else if (days == 1)
+                    if (DateTime.Now.Year >= MainProgram.Variables.seriesList[i].nextEpisodeAirDate.Year)
                     {
-                        tomorrowSeries.Add(MainProgram.Variables.seriesList[i]);
+                        if (MainProgram.Variables.seriesList[i].notificationSent < 2 && days == 0)
+                        {
+                            todaySeries.Add(MainProgram.Variables.seriesList[i]);
+                            MainProgram.Variables.seriesList[i].notificationSent = 2;
+                        }
+
+                        else if (MainProgram.Variables.seriesList[i].notificationSent == 0 && days == 1)
+                        {
+                            tomorrowSeries.Add(MainProgram.Variables.seriesList[i]);
+                            MainProgram.Variables.seriesList[i].notificationSent = 1;
+                        }
                     }
                 }
             }
 
-            showNewEpisodeNotification("A mai napon", todaySeries);
-
-            Task newNotification = Task.Factory.StartNew(() =>
-            {
-                Thread.Sleep(8000);
-                showNewEpisodeNotification("Holnap", tomorrowSeries);
-            });
+            Context.IO.writeSeries();
+            showNewEpisodeNotification("A mai napon ", todaySeries);
+            showNewEpisodeNotification("Holnap ", tomorrowSeries);
         }
     }
 }
