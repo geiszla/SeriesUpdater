@@ -33,6 +33,11 @@ namespace SeriesUpdater
                 {
                     RunOnStartupToolStripMenuItem.Checked = Context.Settings.setAutorun(true);
                 }
+
+                if (!Directory.Exists(MainProgram.Variables.dataPath))
+                {
+                    Directory.CreateDirectory(MainProgram.Variables.dataPath);
+                }
             }
 
             updateSeries();

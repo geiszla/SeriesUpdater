@@ -200,11 +200,6 @@ namespace SeriesUpdater
                     return;
                 }
 
-                if (!Directory.Exists(MainProgram.Variables.dataPath))
-                {
-                    Directory.CreateDirectory(MainProgram.Variables.dataPath);
-                }
-
                 Context.IO.writeSeries(newSeries.name, newSeries.imdbId);
 
                 Cursor.Current = Cursors.Arrow;
