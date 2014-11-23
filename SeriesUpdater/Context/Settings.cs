@@ -18,12 +18,12 @@ namespace SeriesUpdater.Context
                 if (!File.Exists(MainProgram.Variables.dataPath + @"\SeriesUpdater.exe") && MessageBox.Show("Szeretné, ha a programról készülne egy másolat? Így a file törlése esetén is lehetséges a Windows indításakor való futtatás.", "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     File.Copy(Application.ExecutablePath.ToString(), MainProgram.Variables.dataPath + @"\SeriesUpdater.exe");
-                    registryKey.SetValue("MainProgram", MainProgram.Variables.dataPath + @"\SeriesUpdater.exe");
+                    registryKey.SetValue("SeriesUpdater", MainProgram.Variables.dataPath + @"\SeriesUpdater.exe");
                 }
 
                 else
                 {
-                    registryKey.SetValue("MainProgram", Application.ExecutablePath.ToString());
+                    registryKey.SetValue("SeriesUpdater", Application.ExecutablePath.ToString());
                 }
 
                 return true;
@@ -31,7 +31,7 @@ namespace SeriesUpdater.Context
 
             else
             {
-                registryKey.DeleteValue("MainProgram", false);
+                registryKey.DeleteValue("SeriesUpdater", false);
                 return false;
             }
         }
@@ -40,7 +40,7 @@ namespace SeriesUpdater.Context
         {
             RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
 
-            if (registryKey.GetValue("MainProgram") == null)
+            if (registryKey.GetValue("SeriesUpdater") == null)
             {
                 return false;
             }

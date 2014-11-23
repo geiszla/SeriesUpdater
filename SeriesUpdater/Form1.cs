@@ -138,7 +138,7 @@ namespace SeriesUpdater
 
         void refreshTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            updateSeries();
+            Application.OpenForms[0].Invoke(new Action(() => updateSeries()));
         }
         #endregion
 

@@ -53,35 +53,38 @@ namespace SeriesUpdater.Context
 
         public static void getComingSeries(bool isAdd)
         {
-            List<Series> todaySeries = new List<Series>();
-            List<Series> tomorrowSeries = new List<Series>();
-
-            for (int i = 0; i < MainProgram.Variables.seriesList.Count; i++)
+            if (Convert.ToBoolean(Context.Settings.settings[0][1]) == true)
             {
-                if (MainProgram.Variables.seriesList[i].dateKnown >= 3)
+                List<Series> todaySeries = new List<Series>();
+                List<Series> tomorrowSeries = new List<Series>();
+
+                for (int i = 0; i < MainProgram.Variables.seriesList.Count; i++)
                 {
-                    int days = MainProgram.Variables.seriesList[i].nextEpisodeAirDate.DayOfYear - DateTime.Now.DayOfYear;
-
-                    if (DateTime.Now.Year >= MainProgram.Variables.seriesList[i].nextEpisodeAirDate.Year)
+                    if (MainProgram.Variables.seriesList[i].dateKnown >= 3)
                     {
-                        if (MainProgram.Variables.seriesList[i].notificationSent < 2 && days == 0)
-                        {
-                            todaySeries.Add(MainProgram.Variables.seriesList[i]);
-                            MainProgram.Variables.seriesList[i].notificationSent = 2;
-                        }
+                        int days = MainProgram.Variables.seriesList[i].nextEpisodeAirDate.DayOfYear - DateTime.Now.DayOfYear;
 
-                        else if (MainProgram.Variables.seriesList[i].notificationSent == 0 && days == 1)
+                        if (DateTime.Now.Year >= MainProgram.Variables.seriesList[i].nextEpisodeAirDate.Year)
                         {
-                            tomorrowSeries.Add(MainProgram.Variables.seriesList[i]);
-                            MainProgram.Variables.seriesList[i].notificationSent = 1;
+                            if (MainProgram.Variables.seriesList[i].notificationSent < 2 && days == 0)
+                            {
+                                todaySeries.Add(MainProgram.Variables.seriesList[i]);
+                                MainProgram.Variables.seriesList[i].notificationSent = 2;
+                            }
+
+                            else if (MainProgram.Variables.seriesList[i].notificationSent == 0 && days == 1)
+                            {
+                                tomorrowSeries.Add(MainProgram.Variables.seriesList[i]);
+                                MainProgram.Variables.seriesList[i].notificationSent = 1;
+                            }
                         }
                     }
                 }
-            }
 
-            Context.IO.writeSeries();
-            showNewEpisodeNotification("A mai napon ", todaySeries);
-            showNewEpisodeNotification("Holnap ", tomorrowSeries);
+                Context.IO.writeSeries();
+                showNewEpisodeNotification("A mai napon ", todaySeries);
+                showNewEpisodeNotification("Holnap ", tomorrowSeries);
+            }
         }
     }
 }

@@ -52,7 +52,13 @@ namespace SeriesUpdater.MainProgram
                 string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes";
                 MainProgram.ProcessHTML.currNextAirDate = new DateTime();
                 MainProgram.ProcessHTML.currNextDateIndex = 0;
-                MainProgram.Variables.seriesList[i].lastEpisode = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url), isAdd);
+                int[] newLastEpisode = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url), isAdd);
+
+                if (newLastEpisode != MainProgram.Variables.seriesList[i].lastEpisode)
+                {
+                    MainProgram.Variables.seriesList[i].notificationSent = 0;
+                    MainProgram.Variables.seriesList[i].lastEpisode = newLastEpisode;
+                }
             }
         }
 

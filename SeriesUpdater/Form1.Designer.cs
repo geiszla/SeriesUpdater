@@ -33,14 +33,14 @@
             this.seriesTitleLabel = new System.Windows.Forms.Label();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.notifyIconContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.imdbLanguageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.defaultLanguageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.customLanguageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sendNotificationsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.RunOnStartupToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addButton = new System.Windows.Forms.Button();
-            this.imdbLanguageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.defaultLanguageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.customLanguageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.notifyIconContextMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -75,6 +75,32 @@
             this.notifyIconContextMenu.Name = "notifyIconControlManagementMenu";
             this.notifyIconContextMenu.Size = new System.Drawing.Size(222, 98);
             this.notifyIconContextMenu.MouseUp += new System.Windows.Forms.MouseEventHandler(this.notifyIconControlManagementMenu_MouseUp);
+            // 
+            // imdbLanguageToolStripMenuItem
+            // 
+            this.imdbLanguageToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.defaultLanguageToolStripMenuItem,
+            this.customLanguageToolStripMenuItem});
+            this.imdbLanguageToolStripMenuItem.Enabled = false;
+            this.imdbLanguageToolStripMenuItem.Name = "imdbLanguageToolStripMenuItem";
+            this.imdbLanguageToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
+            this.imdbLanguageToolStripMenuItem.Text = "IMDB Nyelv";
+            // 
+            // defaultLanguageToolStripMenuItem
+            // 
+            this.defaultLanguageToolStripMenuItem.Checked = true;
+            this.defaultLanguageToolStripMenuItem.CheckOnClick = true;
+            this.defaultLanguageToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.defaultLanguageToolStripMenuItem.Name = "defaultLanguageToolStripMenuItem";
+            this.defaultLanguageToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.defaultLanguageToolStripMenuItem.Text = "Alapértelmezett";
+            // 
+            // customLanguageToolStripMenuItem
+            // 
+            this.customLanguageToolStripMenuItem.Name = "customLanguageToolStripMenuItem";
+            this.customLanguageToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.customLanguageToolStripMenuItem.Text = "Saját";
+            this.customLanguageToolStripMenuItem.Click += new System.EventHandler(this.customLanguageToolStripMenuItem_Click);
             // 
             // sendNotificationsToolStripMenuItem
             // 
@@ -114,31 +140,6 @@
             this.addButton.Text = "+";
             this.addButton.UseVisualStyleBackColor = true;
             this.addButton.Click += new System.EventHandler(this.addButton_Click);
-            // 
-            // imdbLanguageToolStripMenuItem
-            // 
-            this.imdbLanguageToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.defaultLanguageToolStripMenuItem,
-            this.customLanguageToolStripMenuItem});
-            this.imdbLanguageToolStripMenuItem.Name = "imdbLanguageToolStripMenuItem";
-            this.imdbLanguageToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
-            this.imdbLanguageToolStripMenuItem.Text = "IMDB Nyelv";
-            // 
-            // defaultLanguageToolStripMenuItem
-            // 
-            this.defaultLanguageToolStripMenuItem.Checked = true;
-            this.defaultLanguageToolStripMenuItem.CheckOnClick = true;
-            this.defaultLanguageToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.defaultLanguageToolStripMenuItem.Name = "defaultLanguageToolStripMenuItem";
-            this.defaultLanguageToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
-            this.defaultLanguageToolStripMenuItem.Text = "Alapértelmezett";
-            // 
-            // customLanguageToolStripMenuItem
-            // 
-            this.customLanguageToolStripMenuItem.Name = "customLanguageToolStripMenuItem";
-            this.customLanguageToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
-            this.customLanguageToolStripMenuItem.Text = "Saját";
-            this.customLanguageToolStripMenuItem.Click += new System.EventHandler(this.customLanguageToolStripMenuItem_Click);
             // 
             // Form1
             // 
