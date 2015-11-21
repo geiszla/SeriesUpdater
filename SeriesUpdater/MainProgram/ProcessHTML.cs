@@ -6,52 +6,42 @@ namespace SeriesUpdater.MainProgram
 {
     class ProcessHTML
     {
-        public static DateTime currNextAirDate = new DateTime();
-        public static int currNextDateIndex = 0;
+        public static DateTime CurrNextAirDate = new DateTime();
+        public static int CurrNextDateIndex = 0;
 
-        public static void getInnerHTMLByTagName(int startSearchIndex, string HTMLText, string tagName)
+        public static string[] GetInnerHTMLByAttribute(int StartSearchIndex, string HTMLText, string AttributeValue, string Attribute)
         {
+            int startIndex = HTMLText.IndexOf('>', HTMLText.IndexOf(Attribute + "=\"" + AttributeValue + "\"", StartSearchIndex) + 1);
+            int startTagIndex = HTMLText.LastIndexOf('<', startIndex);
+            string tagName = HTMLText.Substring(startTagIndex + 1, HTMLText.IndexOf(' ', startTagIndex) - startTagIndex - 1);
 
-        }
-
-        public static string[] getInnerHTMLByAttribute(int startSearchIndex, string HTMLText, string attributeValue, string attribute)
-        {
-            int startIndex = HTMLText.IndexOf('>', HTMLText.IndexOf(attribute + "=\"" + attributeValue + "\"", startSearchIndex) + 1);
-            string tagName = HTMLText.Substring(HTMLText.LastIndexOf('<', startIndex) + 1, HTMLText.IndexOf(' ', HTMLText.LastIndexOf('<', startIndex)) - HTMLText.LastIndexOf('<', startIndex) - 1);
             int endIndex = HTMLText.IndexOf("</" + tagName + ">", startIndex + 1);
-            if (endIndex != -1)
-            {
-                string innerHTML = HTMLText.Substring(startIndex + 1, endIndex - startIndex - 1);
+            if (endIndex == -1) return new string[2];
 
-                string[] returnValues = new string[2];
-                returnValues[0] = innerHTML;
-                returnValues[1] = Convert.ToString(endIndex);
-
-                return returnValues;
-            }
-
-            else
-            {
-                return new string[2];
-            }
-        }
-
-        public static int[] getEpisodeByDateIndex(string HTMLText, int dateIndex)
-        {
-            int startIndex = HTMLText.IndexOf("<div>", HTMLText.LastIndexOf("<img", dateIndex)) + 4;
-            int endIndex = HTMLText.IndexOf("</div>", HTMLText.IndexOf("<div>", HTMLText.LastIndexOf("<img", dateIndex)) + 1);
             string innerHTML = HTMLText.Substring(startIndex + 1, endIndex - startIndex - 1);
 
-            int[] episodeNumber = new int[2];
-            episodeNumber[0] = Convert.ToInt32(innerHTML.Split(',')[0].Substring(innerHTML.Split(',')[0].IndexOf('S') + 1));
-            episodeNumber[1] = Convert.ToInt32(innerHTML.Split(',')[1].Substring(innerHTML.Split(',')[1].IndexOf("Ep") + 2));
+            string[] returnValues = new string[2];
+            returnValues[0] = innerHTML;
+            returnValues[1] = Convert.ToString(endIndex);
 
-            return episodeNumber;
+            return returnValues;
         }
 
-        public static string getNameFromHTML(string HTMLText)
+        public static Episode GetEpisodeByDateIndex(string HTMLText, int DateIndex)
         {
-            string innerHTML = getInnerHTMLByAttribute(0, HTMLText, "parent", "class")[0];
+            int startIndex = HTMLText.IndexOf("<div>", HTMLText.LastIndexOf("<img", DateIndex)) + 4;
+            int endIndex = HTMLText.IndexOf("</div>", HTMLText.IndexOf("<div>", HTMLText.LastIndexOf("<img", DateIndex)) + 1);
+            string innerHTML = HTMLText.Substring(startIndex + 1, endIndex - startIndex - 1);
+
+            int seasonNumber = Convert.ToInt32(innerHTML.Split(',')[0].Substring(innerHTML.Split(',')[0].IndexOf('S') + 1));
+            int episodeNumber = Convert.ToInt32(innerHTML.Split(',')[1].Substring(innerHTML.Split(',')[1].IndexOf("Ep") + 2));
+
+            return new Episode(seasonNumber, episodeNumber);
+        }
+
+        public static string GetNameFromHTML(string HTMLText)
+        {
+            string innerHTML = GetInnerHTMLByAttribute(0, HTMLText, "parent", "class")[0];
 
             Match match = Regex.Match(innerHTML, "\'url\'>(.*)</a>", RegexOptions.IgnoreCase);
             string name = match.Groups[1].Value;
@@ -59,33 +49,30 @@ namespace SeriesUpdater.MainProgram
             return name;
         }
 
-        public static int[] getLatestEpisodeFromHTML(string id, string HTMLText, bool isAdd)
+        public static Episode GetLatestEpisodeFromHTML(string id, string HTMLText, bool isAdd)
         {
-            if (HTMLText == "")
-            {
-                return new int[] { 0, 0 };
-            }
+            if (HTMLText == "") return new Episode();
 
-            string seasonName = MainProgram.ProcessHTML.getInnerHTMLByAttribute(0, HTMLText, "episode_top", "id")[0];
-
+            string seasonName = GetInnerHTMLByAttribute(0, HTMLText, "episode_top", "id")[0];
             if (seasonName == null)
             {
                 MessageBox.Show("Ennek a sorozatnak nincsenek epizódjai. Kérem válasszon egy másikat!", "Érvénytelen sorozat", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return new int[] { 0, 0 };
+                return new Episode();
             }
 
             string previousSeasonNumber = "?season=" + Convert.ToString(Convert.ToInt32(seasonName.Substring(seasonName.IndexOf("Season&nbsp;") + 12)) - 1);
 
             int startIndex = 0;
             DateTime latestAirDate = new DateTime();
-            DateTime nextAirDate = currNextAirDate;
-            int nextDateIndex = currNextDateIndex;
+            DateTime nextAirDate = CurrNextAirDate;
+            int nextDateIndex = CurrNextDateIndex;
             int dateKnown = 3;
             int latestDateIndex = 0;
             string innerHTML = "";
-            while ((innerHTML = MainProgram.ProcessHTML.getInnerHTMLByAttribute(startIndex, HTMLText, "airdate", "class")[0]) != default(string))
+
+            while ((innerHTML = GetInnerHTMLByAttribute(startIndex, HTMLText, "airdate", "class")[0]) != default(string))
             {
-                int endIndex = Convert.ToInt32(MainProgram.ProcessHTML.getInnerHTMLByAttribute(startIndex, HTMLText, "airdate", "class")[1]);
+                int endIndex = Convert.ToInt32(GetInnerHTMLByAttribute(startIndex, HTMLText, "airdate", "class")[1]);
                 DateTime airDate = new DateTime();
                 if (innerHTML.Trim() != "")
                 {
@@ -100,7 +87,6 @@ namespace SeriesUpdater.MainProgram
                         dateKnown = 1;
                     }
                 }
-                
 
                 if (airDate < DateTime.Now)
                 {
@@ -108,49 +94,49 @@ namespace SeriesUpdater.MainProgram
                     latestDateIndex = endIndex;
                 }
 
-                else if (nextAirDate == default(DateTime) || airDate < nextAirDate)
+                else if (nextAirDate == null || airDate < nextAirDate)
                 {
                     nextAirDate = airDate;
                     nextDateIndex = endIndex;
                     break;
                 }
 
-                startIndex = Convert.ToInt32(MainProgram.ProcessHTML.getInnerHTMLByAttribute(startIndex, HTMLText, "airdate", "class")[1]);
+                startIndex = Convert.ToInt32(GetInnerHTMLByAttribute(startIndex, HTMLText, "airdate", "class")[1]);
             }
 
             if (nextAirDate != default(DateTime))
             {
-                if (currNextAirDate != nextAirDate)
+                if (CurrNextAirDate != nextAirDate)
                 {
                     if (!isAdd)
                     {
-                        for (int i = 0; i < MainProgram.Variables.seriesList.Count; i++)
+                        foreach (Series currSeries in Variables.SeriesList)
                         {
-                            if (MainProgram.Variables.seriesList[i].imdbId == id)
+                            if (currSeries.ImdbId == id)
                             {
-                                MainProgram.Variables.seriesList[i].nextEpisodeAirDate = nextAirDate;
-                                MainProgram.Variables.seriesList[i].dateKnown = dateKnown;
-                                MainProgram.Variables.seriesList[i].nextEpisode = MainProgram.ProcessHTML.getEpisodeByDateIndex(HTMLText, nextDateIndex);
+                                currSeries.NextEpisodeAirDate = nextAirDate;
+                                currSeries.DateKnown = dateKnown;
+                                currSeries.NextEpisode = GetEpisodeByDateIndex(HTMLText, nextDateIndex);
                             }
                         }
                     }
 
                     else
                     {
-                        MainProgram.Variables.selectedSeries.nextEpisodeAirDate = nextAirDate;
-                        MainProgram.Variables.selectedSeries.dateKnown = dateKnown;
-                        MainProgram.Variables.selectedSeries.nextEpisode = MainProgram.ProcessHTML.getEpisodeByDateIndex(HTMLText, nextDateIndex);
+                        Variables.selectedSeries.NextEpisodeAirDate = nextAirDate;
+                        Variables.selectedSeries.DateKnown = dateKnown;
+                        Variables.selectedSeries.NextEpisode = GetEpisodeByDateIndex(HTMLText, nextDateIndex);
                     }
                 }
 
-                currNextAirDate = nextAirDate;
-                currNextDateIndex = nextDateIndex;
+                CurrNextAirDate = nextAirDate;
+                CurrNextDateIndex = nextDateIndex;
             }
 
-            if (latestAirDate == default(DateTime))
+            if (latestAirDate == null)
             {
                 string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes" + previousSeasonNumber;
-                return getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url), isAdd);
+                return GetLatestEpisodeFromHTML(id, WebRequest.RequestPage(url), isAdd);
             }
 
             else
@@ -173,7 +159,7 @@ namespace SeriesUpdater.MainProgram
                 }
                  */
 
-                return MainProgram.ProcessHTML.getEpisodeByDateIndex(HTMLText, latestDateIndex);
+                return GetEpisodeByDateIndex(HTMLText, latestDateIndex);
             }
         }
     }

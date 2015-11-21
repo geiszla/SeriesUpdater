@@ -5,42 +5,44 @@ namespace SeriesUpdater.Context
 {
     class Controls
     {
-        public static Label createLabel(string name, string text, bool isHeader)
+        public static Label CreateLabel(string Name, string Text, bool IsHeader)
         {
             Label newLabel = new Label();
             newLabel.Anchor = AnchorStyles.Top;
             newLabel.AutoSize = true;
             newLabel.AutoEllipsis = true;
-            newLabel.Font = new Font("Microsoft Sans Serif", 8.25F, (isHeader ? FontStyle.Bold : FontStyle.Regular) | (isHeader ? FontStyle.Underline : FontStyle.Regular), GraphicsUnit.Point, ((byte)(238)));
+            newLabel.Font = new Font("Microsoft Sans Serif", 8.25F,
+                (IsHeader ? FontStyle.Bold : FontStyle.Regular) | (IsHeader ? FontStyle.Underline : FontStyle.Regular),
+                GraphicsUnit.Point, 238);
             newLabel.Margin = new Padding(3, 0, 3, 10);
-            newLabel.Name = name;
-            newLabel.Text = text;
-            newLabel.MaximumSize = new System.Drawing.Size(150, 15);
+            newLabel.Name = Name;
+            newLabel.Text = Text;
+            newLabel.MaximumSize = new Size(150, 15);
 
             return newLabel;
         }
 
-        public static TextBox createTextBox(string name, string text)
+        public static TextBox CreateTextBox(string Name, string Text)
         {
             TextBox newTextBox = new TextBox();
             newTextBox.Anchor = AnchorStyles.Top;
             newTextBox.Margin = new Padding(3, 0, 3, 10);
-            newTextBox.Name = name;
-            newTextBox.Text = text;
+            newTextBox.Name = Name;
+            newTextBox.Text = Text;
             newTextBox.Size = newTextBox.PreferredSize;
 
             return newTextBox;
         }
 
-        public static TableLayoutPanel createTableLayoutPanel(params Label[] headers)
+        public static TableLayoutPanel CreateTableLayoutPanel(params Label[] Headers)
         {
             TableLayoutPanel newTable = new TableLayoutPanel();
             newTable.AutoSize = true;
             newTable.AutoSizeMode = AutoSizeMode.GrowAndShrink;
 
-            for (int i = 0; i < headers.Length; i++)
+            for (int i = 0; i < Headers.Length; i++)
             {
-                newTable.Controls.Add(headers[i], i, 0);
+                newTable.Controls.Add(Headers[i], i, 0);
             }
 
             newTable.Location = new Point(15, 47);
@@ -49,17 +51,17 @@ namespace SeriesUpdater.Context
             return newTable;
         }
 
-        public static PictureBox createPictureBox(string name, Bitmap image, int left, int top, int size, bool clickable)
+        public static PictureBox CreatePictureBox(string Name, Bitmap Image, int Left, int Top, int Size, bool IsClickable)
         {
             PictureBox newImage = new PictureBox();
-            newImage.Cursor = clickable ? Cursors.Hand : Cursors.Arrow;
-            newImage.Height = size;
-            newImage.Width = size;
-            newImage.Image = image;
+            newImage.Cursor = IsClickable ? Cursors.Hand : Cursors.Arrow;
+            newImage.Height = Size;
+            newImage.Width = Size;
+            newImage.Image = Image;
             newImage.SizeMode = PictureBoxSizeMode.Zoom;
-            newImage.Left = left;
-            newImage.Top = top;
-            newImage.Name = name;
+            newImage.Left = Left;
+            newImage.Top = Top;
+            newImage.Name = Name;
 
             return newImage;
         }

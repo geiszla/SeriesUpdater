@@ -14,7 +14,7 @@ namespace SeriesUpdater
         #region Events
         private void Form3_Load(object sender, EventArgs e)
         {
-            this.Visible = false;
+            Visible = false;
 
             if (MainProgram.Variables.searchQuery != "")
             {
@@ -22,7 +22,7 @@ namespace SeriesUpdater
                 startSearch();
             }
 
-            this.Visible = true;
+            Visible = true;
         }
 
         private void searchButton_Click(object sender, EventArgs e)
@@ -44,25 +44,25 @@ namespace SeriesUpdater
             string imdbId = resultTable.SelectedRows[0].Cells[0].Value.ToString();
             string name = resultTable.SelectedRows[0].Cells[1].Value.ToString();
 
-            MainProgram.Variables.selectedSeries = new Series(name, imdbId, new int[2], new int[2], new DateTime(), 3);
+            MainProgram.Variables.selectedSeries = new Series(name, imdbId, new Episode(), new Episode(), new DateTime(), 3);
 
             string id = resultTable.SelectedRows[0].Cells[0].Value.ToString();
             string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes";
 
-            MainProgram.ProcessHTML.currNextAirDate = new DateTime();
-            MainProgram.ProcessHTML.currNextDateIndex = 0;
-            MainProgram.Variables.selectedSeries.lastEpisode = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(id, MainProgram.WebRequest.requestPage(url), true);
+            MainProgram.ProcessHTML.CurrNextAirDate = new DateTime();
+            MainProgram.ProcessHTML.CurrNextDateIndex = 0;
+            MainProgram.Variables.selectedSeries.LastEpisode = MainProgram.ProcessHTML.GetLatestEpisodeFromHTML(id, MainProgram.WebRequest.RequestPage(url), true);
 
-            if (MainProgram.Variables.selectedSeries.lastEpisode[0] != 0)
+            if (MainProgram.Variables.selectedSeries.LastEpisode.SeasonNumber != 0)
             {
                 MainProgram.Variables.isSelectedSeries = true;
-                this.Close();
+                Close();
             }
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         private void searchBox_TextChanged(object sender, EventArgs e)
@@ -93,12 +93,13 @@ namespace SeriesUpdater
             MainProgram.Variables.resultSeriesList.Clear();
             Cursor.Current = Cursors.WaitCursor;
 
-            MainProgram.WebRequest.searchForSeries(searchBox.Text);
+            MainProgram.WebRequest.SearchForSeries(searchBox.Text);
             DataTable seriesTable = MainProgram.ProcessData.createTable();
 
             if (seriesTable.Rows.Count == 0)
             {
-                MessageBox.Show("Nincs találat. Kérem próbálja újra más kulcsszóval!", "Nincs találat", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Nincs találat. Kérem próbálja újra más kulcsszóval!",
+                    "Nincs találat", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             else

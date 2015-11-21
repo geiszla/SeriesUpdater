@@ -7,23 +7,29 @@ namespace SeriesUpdater.Context
 {
     class Settings
     {
-        public static List<string[]> settings = new List<string[]> { new string[] { "SendNotifications", "True" }, new string[] { "RunOnStartup", "False" } };
+        public static List<string[]> GlobalSettings = new List<string[]> {
+            new string[] { "SendNotifications", "True" },
+            new string[] { "RunOnStartup", "False" } };
 
-        public static bool setAutorun(bool isAdd)
+        public static bool SetAutorun(bool IsAdd)
         {
             RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
-
-            if (isAdd || (!isStartupItem() && !isAdd))
+            
+            if (IsAdd || (!IsAdd && !IsStartupItem()))
             {
-                if (!File.Exists(MainProgram.Variables.dataPath + @"\SeriesUpdater.exe") && MessageBox.Show("Szeretné, ha a programról készülne egy másolat? Így a file törlése esetén is lehetséges a Windows indításakor való futtatás.", "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                DialogResult copyExecutableDialogResult =
+                    MessageBox.Show("Szeretné, ha a programról készülne egy másolat? Így a file törlése esetén is lehetséges a Windows indításakor való futtatás.",
+                    "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                if (!File.Exists(MainProgram.Variables.ExecutableFileName) && copyExecutableDialogResult == DialogResult.Yes)
                 {
-                    File.Copy(Application.ExecutablePath.ToString(), MainProgram.Variables.dataPath + @"\SeriesUpdater.exe");
-                    registryKey.SetValue("SeriesUpdater", MainProgram.Variables.dataPath + @"\SeriesUpdater.exe");
+                    File.Copy(Application.ExecutablePath, MainProgram.Variables.ExecutableFileName);
+                    registryKey.SetValue("SeriesUpdater", MainProgram.Variables.ExecutableFileName);
                 }
 
                 else
                 {
-                    registryKey.SetValue("SeriesUpdater", Application.ExecutablePath.ToString());
+                    registryKey.SetValue("SeriesUpdater", Application.ExecutablePath);
                 }
 
                 return true;
@@ -36,38 +42,21 @@ namespace SeriesUpdater.Context
             }
         }
 
-        public static bool isStartupItem()
+        public static bool IsStartupItem()
         {
             RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
-
-            if (registryKey.GetValue("SeriesUpdater") == null)
-            {
-                return false;
-            }
-
-            else
-            {
-                return true;
-            }
+            return registryKey.GetValue("SeriesUpdater") != null;
         }
 
-        public static bool isFirstCheck()
+        public static bool IsFirstCheck()
         {
-            if (Directory.Exists(MainProgram.Variables.dataPath))
-            {
-                return false;
-            }
-
-            else
-            {
-                return true;
-            }
+            return !Directory.Exists(MainProgram.Variables.DataFolderPath);
         }
 
-        public static void changeSettings(int number, string value)
+        public static void ChangeSettings(int Number, string Value)
         {
-            Context.Settings.settings[number][1] = value;
-            Context.IO.writeSettings(Context.Settings.settings[number][0], value);
+            GlobalSettings[Number][1] = Value;
+            IO.WriteSettings(GlobalSettings[Number][0], Value);
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Windows.Forms;
 
 namespace SeriesUpdater
@@ -16,12 +15,12 @@ namespace SeriesUpdater
         {
             placeForm();
             MainProgram.Variables.isAddedSeries = false;
-            this.ActiveControl = nameTextBox;
+            ActiveControl = nameTextBox;
         }
 
         private void cancelButton_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         private void addButton_Click(object sender, EventArgs e)
@@ -54,19 +53,14 @@ namespace SeriesUpdater
                     return;
                 }
 
-                try
-                {
-                    MainProgram.ProcessData.convertEpisodeString(lastViewedEpisodeTextBox.Text);
-                }
-
-                catch
+                if (!Episode.IsValidEpisodeString(lastViewedEpisodeTextBox.Text))
                 {
                     MessageBox.Show("Nem megfelelő a megadott \"legutoljára látott epizód\" formátuma.", "Érvénytelen formátum", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
                 addSeries();
-                Context.Notification.getComingSeries(true);
+                Context.Notification.GetComingSeries(true);
             }
         }
 
@@ -97,27 +91,29 @@ namespace SeriesUpdater
 
                 catch
                 {
-                    MessageBox.Show("Nem megfelelő az IMDB azonodító formátuma. A kód csak számokat tartalmazhat.", "Érvénytelen formátum", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Nem megfelelő az IMDB azonodító formátuma. A kód csak számokat tartalmazhat.",
+                        "Érvénytelen formátum", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
                 Cursor.Current = Cursors.WaitCursor;
                 string url = "http://www.imdb.com/title/" + "tt" + Convert.ToInt32(imdbIdTextBox.Text) + "/episodes";
-                string HTMLText = MainProgram.WebRequest.requestPage(url);
-                MainProgram.ProcessHTML.currNextAirDate = new DateTime();
-                MainProgram.ProcessHTML.currNextDateIndex = 0;
-                int[] latestEp = MainProgram.ProcessHTML.getLatestEpisodeFromHTML(imdbIdTextBox.Text, HTMLText, false);
+                string HTMLText = MainProgram.WebRequest.RequestPage(url);
+                MainProgram.ProcessHTML.CurrNextAirDate = new DateTime();
+                MainProgram.ProcessHTML.CurrNextDateIndex = 0;
+                Episode latestEp = MainProgram.ProcessHTML.GetLatestEpisodeFromHTML(imdbIdTextBox.Text, HTMLText, false);
 
                 if (HTMLText != "")
                 {
-                    nameTextBox.Text = MainProgram.ProcessHTML.getNameFromHTML(HTMLText);
-                    lastViewedEpisodeTextBox.Text = "S" + latestEp[0] + "E" + latestEp[1];
+                    nameTextBox.Text = MainProgram.ProcessHTML.GetNameFromHTML(HTMLText);
+                    lastViewedEpisodeTextBox.Text = latestEp.ToString();
                 }
             }
 
             else
             {
-                MessageBox.Show("A sorozat azonosításához kérem adja meg a megfelelő IMDB azonosítót!", "Üres mező", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("A sorozat azonosításához kérem adja meg a megfelelő IMDB azonosítót!",
+                    "Üres mező", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -125,9 +121,9 @@ namespace SeriesUpdater
         {
             if (MainProgram.Variables.isSelectedSeries)
             {
-                imdbIdTextBox.Text = MainProgram.Variables.selectedSeries.imdbId;
-                nameTextBox.Text = MainProgram.Variables.selectedSeries.name;
-                lastViewedEpisodeTextBox.Text = "S" + MainProgram.Variables.selectedSeries.lastEpisode[0] + "E" + MainProgram.Variables.selectedSeries.lastEpisode[1];
+                imdbIdTextBox.Text = MainProgram.Variables.selectedSeries.ImdbId;
+                nameTextBox.Text = MainProgram.Variables.selectedSeries.Name;
+                lastViewedEpisodeTextBox.Text = MainProgram.Variables.selectedSeries.LastEpisode.ToString();
             }
         }
 
@@ -173,9 +169,9 @@ namespace SeriesUpdater
         {
             string imdbId = imdbIdTextBox.Text;
             bool isFound = false;
-            foreach (Series currSeries in MainProgram.Variables.seriesList)
+            foreach (Series currSeries in MainProgram.Variables.SeriesList)
             {
-                if (imdbId == currSeries.imdbId)
+                if (imdbId == currSeries.ImdbId)
                 {
                     isFound = true;
                 }
@@ -185,32 +181,34 @@ namespace SeriesUpdater
             {
                 Cursor.Current = Cursors.WaitCursor;
 
-                Series newSeries = new Series(MainProgram.Variables.seriesList.Count, nameTextBox.Text, imdbId, MainProgram.ProcessData.convertEpisodeString(lastViewedEpisodeTextBox.Text), new int[2], new int[2], new DateTime(), 3, 0);
-                MainProgram.Variables.seriesList.Add(newSeries);
+                Series newSeries = new Series(MainProgram.Variables.SeriesList.Count, nameTextBox.Text, imdbId,
+                    new Episode(lastViewedEpisodeTextBox.Text), new Episode(), new Episode(), new DateTime(), 3, 0);
+                MainProgram.Variables.SeriesList.Add(newSeries);
 
-                if (MainProgram.Variables.selectedSeries.imdbId == newSeries.imdbId)
+                if (MainProgram.Variables.selectedSeries.ImdbId == newSeries.ImdbId)
                 {
-                    newSeries.lastEpisode = MainProgram.Variables.selectedSeries.lastEpisode;
-                    newSeries.nextEpisode = MainProgram.Variables.selectedSeries.nextEpisode;
-                    newSeries.nextEpisodeAirDate = MainProgram.Variables.selectedSeries.nextEpisodeAirDate;
+                    newSeries.LastEpisode = MainProgram.Variables.selectedSeries.LastEpisode;
+                    newSeries.NextEpisode = MainProgram.Variables.selectedSeries.NextEpisode;
+                    newSeries.NextEpisodeAirDate = MainProgram.Variables.selectedSeries.NextEpisodeAirDate;
                 }
 
-                if (MainProgram.Variables.seriesList[MainProgram.Variables.seriesList.Count - 1].lastEpisode[0] == 0)
+                if (MainProgram.Variables.SeriesList[MainProgram.Variables.SeriesList.Count - 1].LastEpisode.SeasonNumber == 0)
                 {
                     return;
                 }
 
-                Context.IO.writeSeries(newSeries.name, newSeries.imdbId);
+                Context.IO.WriteSeries(newSeries.Name, newSeries.ImdbId);
 
                 Cursor.Current = Cursors.Arrow;
                 MainProgram.Variables.isAddedSeries = true;
 
-                this.Close();
+                Close();
             }
 
             else
             {
-                MessageBox.Show("Ez a sorozat már benne van a listában, kérem válasszon egy másikat!", "Ismétlődő sorozat", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Ez a sorozat már benne van a listában, kérem válasszon egy másikat!",
+                    "Ismétlődő sorozat", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

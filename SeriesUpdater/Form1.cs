@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 
@@ -17,26 +18,27 @@ namespace SeriesUpdater
             MainProgram.Variables.notifyIcon = this.notifyIcon;
             MainProgram.Variables.mainForm = this;
 
-            RunOnStartupToolStripMenuItem.Checked = Context.Settings.isStartupItem();
+            RunOnStartupToolStripMenuItem.Checked = Context.Settings.IsStartupItem();
             WireAllControls(this);
         }
 
         #region Form Events
         private void Form1_Load(object sender, EventArgs e)
         {
-            Context.IO.readSettings();
-            Context.IO.readSeries();
+            Context.IO.ReadSettings();
+            Context.IO.ReadSeries();
 
             if (MainProgram.Variables.isFirst)
             {
-                if (!Context.Settings.isStartupItem() && MessageBox.Show("Szeretné, hogy a program automatikusan elinduljon a Windows indításakor?", "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (!Context.Settings.IsStartupItem() && MessageBox.Show("Szeretné, hogy a program automatikusan elinduljon a Windows indításakor?",
+                    "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    RunOnStartupToolStripMenuItem.Checked = Context.Settings.setAutorun(true);
+                    RunOnStartupToolStripMenuItem.Checked = Context.Settings.SetAutorun(true);
                 }
 
-                if (!Directory.Exists(MainProgram.Variables.dataPath))
+                if (!Directory.Exists(MainProgram.Variables.DataFolderPath))
                 {
-                    Directory.CreateDirectory(MainProgram.Variables.dataPath);
+                    Directory.CreateDirectory(MainProgram.Variables.DataFolderPath);
                 }
             }
 
@@ -52,7 +54,7 @@ namespace SeriesUpdater
 
         private void Form1_Shown(object sender, EventArgs e)
         {
-            this.Hide();
+            Hide();
         }
 
         private void Form1_Deactivate(object sender, EventArgs e)
@@ -60,13 +62,13 @@ namespace SeriesUpdater
             if (!MainProgram.Variables.isAddFormOpened)
             {
                 MainProgram.Variables.lastDeactivateTick = Environment.TickCount;
-                this.Hide();
+                Hide();
             }
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Context.IO.writeSettings();
+            Context.IO.WriteSettings();
             notifyIcon.Visible = false;
         }
 
@@ -89,19 +91,20 @@ namespace SeriesUpdater
 
         private void deleteImage_Click(object sender, EventArgs e)
         {
-            this.Deactivate -= Form1_Deactivate;
-            if (MessageBox.Show("Biztosan törölni akarod ezt a sorozatot?", "Sorozat törlése", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            Deactivate -= Form1_Deactivate;
+            if (MessageBox.Show("Biztosan törölni akarod ezt a sorozatot?", "Sorozat törlése",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 PictureBox deleteImage = (PictureBox)sender;
                 int id = Convert.ToInt32(deleteImage.Name.Split('_')[1]);
                 Label nameLabel = (Label)Controls.Find("name_" + id, true)[0];
-                MainProgram.Variables.seriesList.Remove(MainProgram.Variables.seriesList[MainProgram.ProcessData.getElementFromListByName(nameLabel.Text)]);
+                MainProgram.Variables.SeriesList.Remove(MainProgram.Variables.SeriesList.Where(x => x.Name == nameLabel.Text).FirstOrDefault());
 
                 applyData(false);
-                Context.IO.writeSeries();
+                Context.IO.WriteSeries();
             }
 
-            this.Deactivate += Form1_Deactivate;
+            Deactivate += Form1_Deactivate;
         }
 
         private void newTextBox_LostFocus(object sender, EventArgs e)
@@ -133,7 +136,7 @@ namespace SeriesUpdater
 
         private void constrols_Click(object sender, EventArgs e)
         {
-            this.InvokeOnClick(this, EventArgs.Empty);
+            InvokeOnClick(this, EventArgs.Empty);
         }
 
         void refreshTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -151,8 +154,8 @@ namespace SeriesUpdater
             {
                 if (Environment.TickCount - MainProgram.Variables.lastDeactivateTick > 250)
                 {
-                    this.Show();
-                    this.Activate();
+                    Show();
+                    Activate();
                 }
             }
         }
@@ -166,17 +169,17 @@ namespace SeriesUpdater
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         private void autorunStripMenuItem_Click(object sender, EventArgs e)
         {
-            RunOnStartupToolStripMenuItem.Checked = Context.Settings.setAutorun(false);
+            RunOnStartupToolStripMenuItem.Checked = Context.Settings.SetAutorun(false);
         }
 
         private void notificationContextMenuItem_Click(object sender, EventArgs e)
         {
-            Context.Settings.changeSettings(0, sendNotificationsToolStripMenuItem.Checked.ToString());
+            Context.Settings.ChangeSettings(0, sendNotificationsToolStripMenuItem.Checked.ToString());
         }
 
         private void customLanguageToolStripMenuItem_Click(object sender, EventArgs e)
@@ -209,14 +212,14 @@ namespace SeriesUpdater
                 xPosition = Cursor.Position.X;
             }
 
-            if (xPosition + (this.Width / 2) <= Screen.PrimaryScreen.WorkingArea.Width - 10 && !isFormClosed)
+            if (xPosition + (Width / 2) <= Screen.PrimaryScreen.WorkingArea.Width - 10 && !isFormClosed)
             {
-                this.Left = xPosition - (this.Width / 2);
+                Left = xPosition - (Width / 2);
             }
 
             else
             {
-                this.Left = Screen.PrimaryScreen.WorkingArea.Width - this.Width - 10;
+                Left = Screen.PrimaryScreen.WorkingArea.Width - Width - 10;
             }
 
             Top = Screen.PrimaryScreen.WorkingArea.Height - Height - 10;
@@ -224,35 +227,35 @@ namespace SeriesUpdater
 
         void updateSeries()
         {
-            if (MainProgram.Variables.seriesList.Count > 0)
+            if (MainProgram.Variables.SeriesList.Count > 0)
             {
                 string text = "Frissítés folyamatban. A frissítés alatt nem tudod megnyitni a programot.";
-                Context.Notification.showNotification("Frissítés", text, 3000);
+                Context.Notification.ShowNotification("Frissítés", text, 3000);
             }
 
             else
             {
                 string text = "Az ikonra kattintva nyithatja meg a programot, adhat hozzá, illetve a későbbiekben törölhet sorozatokat.";
-                Context.Notification.showNotification("Sorozat figyelő", text, 3000);
+                Context.Notification.ShowNotification("Sorozat figyelő", text, 3000);
             }
 
-            if (MainProgram.Variables.seriesList.Count > 0)
+            if (MainProgram.Variables.SeriesList.Count > 0)
             {
-                MainProgram.WebRequest.getLatestEpisodes(false);
-                Context.IO.writeSeries();
+                MainProgram.WebRequest.GetLatestEpisodes();
+                Context.IO.WriteSeries();
             }
 
             applyData(false);
             applySettings();
             updateLabels(false);
 
-            if (MainProgram.Variables.seriesList.Count > 0)
+            if (MainProgram.Variables.SeriesList.Count > 0)
             {
                 string text = "Sikeresen frissültek a legújabb epizódok. Most már megnyithatja a programot.";
-                Context.Notification.showNotification("Sikeres frissítés", text, 3000);
+                Context.Notification.ShowNotification("Sikeres frissítés", text, 3000);
             }
 
-            Context.Notification.getComingSeries(false);
+            Context.Notification.GetComingSeries(false);
         }
 
         void applyData(bool isAdd)
@@ -260,19 +263,20 @@ namespace SeriesUpdater
             if (Controls.Find("seriesTable", true).Length != 0 && !isAdd)
             {
                 TableLayoutPanel seriesTable = (TableLayoutPanel)Controls.Find("seriesTable", true)[0];
-                this.Controls.Remove(seriesTable);
+                Controls.Remove(seriesTable);
                 applyData(isAdd);
                 return;
             }
 
-            if (MainProgram.Variables.seriesList.Count > 0)
+            if (MainProgram.Variables.SeriesList.Count > 0)
             {
-                Label deleteLabel = Context.Controls.createLabel("deleteLabel", "", true);
-                Label nameHeaderLabel = Context.Controls.createLabel("nameHeaderLabel", "Név", true);
-                Label lastViewedHeaderLabel = Context.Controls.createLabel("lastViewedHeaderLabel", "Legutóbb megtekintett", true);
-                Label lastEpisodeHeaderLabel = Context.Controls.createLabel("lastEpisodeHeaderLabel", "Legújabb", true);
+                Label deleteLabel = Context.Controls.CreateLabel("deleteLabel", "", true);
+                Label nameHeaderLabel = Context.Controls.CreateLabel("nameHeaderLabel", "Név", true);
+                Label lastViewedHeaderLabel = Context.Controls.CreateLabel("lastViewedHeaderLabel", "Legutóbb megtekintett", true);
+                Label lastEpisodeHeaderLabel = Context.Controls.CreateLabel("lastEpisodeHeaderLabel", "Legújabb", true);
 
-                TableLayoutPanel seriesTable = Context.Controls.createTableLayoutPanel(deleteLabel, nameHeaderLabel, lastViewedHeaderLabel, lastEpisodeHeaderLabel);
+                TableLayoutPanel seriesTable = Context.Controls.CreateTableLayoutPanel(deleteLabel, nameHeaderLabel,
+                    lastViewedHeaderLabel, lastEpisodeHeaderLabel);
                 Application.OpenForms[0].Controls.Add(seriesTable);
             }
 
@@ -280,7 +284,7 @@ namespace SeriesUpdater
 
             if (isAdd)
             {
-                forStart = MainProgram.Variables.seriesList.Count - 1;
+                forStart = MainProgram.Variables.SeriesList.Count - 1;
             }
 
             else
@@ -288,25 +292,29 @@ namespace SeriesUpdater
                 forStart = 0;
             }
 
-            for (int i = forStart; i < MainProgram.Variables.seriesList.Count; i++)
+            for (int i = forStart; i < MainProgram.Variables.SeriesList.Count; i++)
             {
-                Label nameLabel = Context.Controls.createLabel("name_" + MainProgram.Variables.seriesList[i].id, MainProgram.Variables.seriesList[i].name, false);
-                Label lastViewedLabel = Context.Controls.createLabel("lastViewed_" + MainProgram.Variables.seriesList[i].id, "S" + MainProgram.Variables.seriesList[i].lastViewed[0] + "E" + MainProgram.Variables.seriesList[i].lastViewed[1], false);
+                Label nameLabel = Context.Controls.CreateLabel("name_" + MainProgram.Variables.SeriesList[i].Id,
+                    MainProgram.Variables.SeriesList[i].Name, false);
+                Label lastViewedLabel = Context.Controls.CreateLabel("lastViewed_" + MainProgram.Variables.SeriesList[i].Id,
+                    MainProgram.Variables.SeriesList[i].LastViewed.ToString(), false);
                 lastViewedLabel.Cursor = Cursors.Hand;
                 lastViewedLabel.Click += lastViewedLabel_Click;
 
                 Label lastEpLabel = new Label();
-                if (MainProgram.Variables.seriesList[i].lastEpisode != default(int[]))
+                if (MainProgram.Variables.SeriesList[i].LastEpisode != null)
                 {
-                    lastEpLabel = Context.Controls.createLabel("lastEp_" + MainProgram.Variables.seriesList[i].id, "S" + MainProgram.Variables.seriesList[i].lastEpisode[0] + "E" + MainProgram.Variables.seriesList[i].lastEpisode[1], false);
+                    lastEpLabel = Context.Controls.CreateLabel("lastEp_" + MainProgram.Variables.SeriesList[i].Id,
+                        MainProgram.Variables.SeriesList[i].LastEpisode.ToString(), false);
                 }
 
                 else
                 {
-                    lastEpLabel = Context.Controls.createLabel("lastEp_" + MainProgram.Variables.seriesList[i].id, "", false);
+                    lastEpLabel = Context.Controls.CreateLabel("lastEp_" + MainProgram.Variables.SeriesList[i].Id, "", false);
                 }
 
-                PictureBox deleteImage = Context.Controls.createPictureBox("delete_" + MainProgram.Variables.seriesList[i].id, SeriesUpdater.Properties.Resources.delete1, 0, 0, 10, true);
+                PictureBox deleteImage = Context.Controls.CreatePictureBox("delete_" + MainProgram.Variables.SeriesList[i].Id,
+                    Properties.Resources.delete1, 0, 0, 10, true);
                 deleteImage.Click += deleteImage_Click;
 
                 TableLayoutPanel seriesTable = (TableLayoutPanel)Controls.Find("seriesTable", true)[0];
@@ -315,13 +323,17 @@ namespace SeriesUpdater
                 seriesTable.Controls.Add(lastViewedLabel, 2, i + 1);
                 seriesTable.Controls.Add(lastEpLabel, 3, i + 1);
 
-                if (MainProgram.Variables.seriesList[i].lastEpisode[0] > MainProgram.Variables.seriesList[i].lastViewed[0] || (MainProgram.Variables.seriesList[i].lastEpisode[0] == MainProgram.Variables.seriesList[i].lastViewed[0] && MainProgram.Variables.seriesList[i].lastEpisode[1] > MainProgram.Variables.seriesList[i].lastViewed[1]))
+                if (MainProgram.Variables.SeriesList[i].LastEpisode.SeasonNumber > MainProgram.Variables.SeriesList[i].LastViewed.SeasonNumber
+                    || (MainProgram.Variables.SeriesList[i].LastEpisode.SeasonNumber == MainProgram.Variables.SeriesList[i].LastViewed.SeasonNumber
+                        && MainProgram.Variables.SeriesList[i].LastEpisode.EpisodeNumber > MainProgram.Variables.SeriesList[i].LastViewed.EpisodeNumber))
                 {
                     lastEpLabel.Font = new Font(lastEpLabel.Font, FontStyle.Bold);
                     lastEpLabel.Width = lastEpLabel.PreferredWidth;
 
                     /*
-                    PictureBox newPicture = ControlManagement.NewControls.createPictureBox("new_" + MainProgram.Variables.seriesList[i].id, SeriesUpdater.Properties.Resources.uj_másolat, createSeriesTable.Left + lastEpLabel.Left + lastEpLabel.Width + 2, createSeriesTable.Top + lastEpLabel.Top + 1, 10);
+                    PictureBox newPicture = ControlManagement.NewControls.createPictureBox("new_" + MainProgram.Variables.seriesList[i].id,
+                        SeriesUpdater.Properties.Resources.uj_másolat, createSeriesTable.Left + lastEpLabel.Left + lastEpLabel.Width + 2,
+                        createSeriesTable.Top + lastEpLabel.Top + 1, 10);
                     newPicture.BringToFront();
                      */
                 }
@@ -332,20 +344,20 @@ namespace SeriesUpdater
 
         void applySettings()
         {
-            foreach (string[] option in Context.Settings.settings)
+            foreach (string[] option in Context.Settings.GlobalSettings)
             {
                 ToolStripMenuItem currOption = (ToolStripMenuItem)notifyIconContextMenu.Items.Find(option[0] + "ToolStripMenuItem", true)[0];
 
                 if (option[0] == "RunOnStartup")
                 {
-                    if (Convert.ToBoolean(option[1]) && !Context.Settings.isStartupItem())
+                    if (Convert.ToBoolean(option[1]) && !Context.Settings.IsStartupItem())
                     {
-                        Context.Settings.setAutorun(true);
+                        Context.Settings.SetAutorun(true);
                     }
 
-                    else if (!Convert.ToBoolean(option[1]) && Context.Settings.isStartupItem())
+                    else if (!Convert.ToBoolean(option[1]) && Context.Settings.IsStartupItem())
                     {
-                        Context.Settings.setAutorun(false);
+                        Context.Settings.SetAutorun(false);
                     }
                 }
             }
@@ -363,7 +375,7 @@ namespace SeriesUpdater
 
                 seriesTable.Controls.Remove(currLastViewedLabel);
 
-                TextBox newTextBox = Context.Controls.createTextBox("lastViewedBox_" + id, text);
+                TextBox newTextBox = Context.Controls.CreateTextBox("lastViewedBox_" + id, text);
                 newTextBox.KeyDown += newTextBox_KeyDown;
                 newTextBox.LostFocus += newTextBox_LostFocus;
                 seriesTable.Controls.Add(newTextBox, 2, id + 1);
@@ -388,32 +400,37 @@ namespace SeriesUpdater
 
                 seriesTable.Controls.Remove(currLastViewedTextBox);
 
-                Label newLabel = Context.Controls.createLabel("lastViewed_" + id, text, false);
+                Label newLabel = Context.Controls.CreateLabel("lastViewed_" + id, text, false);
                 newLabel.Cursor = Cursors.Hand;
                 newLabel.Click += lastViewedLabel_Click;
                 seriesTable.Controls.Add(newLabel, 2, id + 1);
 
-                MainProgram.Variables.seriesList[id].lastViewed = MainProgram.ProcessData.convertEpisodeString(text);
-                Context.IO.writeSeries();
+                MainProgram.Variables.SeriesList[id].LastViewed = new Episode(text);
+                Context.IO.WriteSeries();
 
                 Control currLastEpLabel = Controls.Find("lastEp_" + id, true)[0];
-                if (MainProgram.Variables.seriesList[id].lastEpisode[0] > MainProgram.Variables.seriesList[id].lastViewed[0] || (MainProgram.Variables.seriesList[id].lastEpisode[0] == MainProgram.Variables.seriesList[id].lastViewed[0] && MainProgram.Variables.seriesList[id].lastEpisode[1] > MainProgram.Variables.seriesList[id].lastViewed[1]))
+                if (MainProgram.Variables.SeriesList[id].LastEpisode.SeasonNumber > MainProgram.Variables.SeriesList[id].LastViewed.SeasonNumber
+                    || (MainProgram.Variables.SeriesList[id].LastEpisode.SeasonNumber == MainProgram.Variables.SeriesList[id].LastViewed.SeasonNumber
+                        && MainProgram.Variables.SeriesList[id].LastEpisode.EpisodeNumber > MainProgram.Variables.SeriesList[id].LastViewed.EpisodeNumber))
                 {
-                    currLastEpLabel.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, ((byte)(238)));
+                    currLastEpLabel.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Bold, GraphicsUnit.Point, 238);
                 }
 
-                else if (MainProgram.Variables.seriesList[id].lastEpisode[0] < MainProgram.Variables.seriesList[id].lastViewed[0] || (MainProgram.Variables.seriesList[id].lastEpisode[0] == MainProgram.Variables.seriesList[id].lastViewed[0] && MainProgram.Variables.seriesList[id].lastEpisode[1] < MainProgram.Variables.seriesList[id].lastViewed[1]))
+                else if (MainProgram.Variables.SeriesList[id].LastEpisode.SeasonNumber < MainProgram.Variables.SeriesList[id].LastViewed.SeasonNumber
+                    || (MainProgram.Variables.SeriesList[id].LastEpisode.SeasonNumber == MainProgram.Variables.SeriesList[id].LastViewed.SeasonNumber
+                        && MainProgram.Variables.SeriesList[id].LastEpisode.EpisodeNumber < MainProgram.Variables.SeriesList[id].LastViewed.EpisodeNumber))
                 {
-                    this.Deactivate -= Form1_Deactivate;
-                    MessageBox.Show(this, "A legutoljára látott epizód számának kisebbnek kell lennie, mint az utoljára megjelent epizód.", "Érvénytelen epizód", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    this.Show();
-                    this.Deactivate += Form1_Deactivate;
+                    Deactivate -= Form1_Deactivate;
+                    MessageBox.Show(this, "A legutoljára látott epizód számának kisebbnek kell lennie, mint az utoljára megjelent epizód.", "Érvénytelen epizód",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Show();
+                    Deactivate += Form1_Deactivate;
                     editLastViewedLabel(newLabel);
                 }
 
                 else
                 {
-                    currLastEpLabel.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(238)));
+                    currLastEpLabel.Font = new Font("Microsoft Sans Serif", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 238);
                 }
             }
         }
@@ -422,10 +439,10 @@ namespace SeriesUpdater
         {
             if (updateLastEpisode)
             {
-                for (int i = 0; i < MainProgram.Variables.seriesList.Count; i++)
+                for (int i = 0; i < MainProgram.Variables.SeriesList.Count; i++)
                 {
                     Label currLabel = (Label)Controls.Find("lastEp_" + i, true)[0];
-                    currLabel.Text = "S" + MainProgram.Variables.seriesList[i].lastEpisode[0] + "E" + MainProgram.Variables.seriesList[i].lastEpisode[0];
+                    currLabel.Text = MainProgram.Variables.SeriesList[i].ToString();
                 }
             }
         }
@@ -453,42 +470,4 @@ namespace SeriesUpdater
         }
         #endregion
     }
-
-    #region Classes
-    public class Series
-    {
-        public int id;
-        public string name;
-        public string imdbId;
-        public int[] lastViewed;
-        public int[] lastEpisode;
-        public int[] nextEpisode;
-        public DateTime nextEpisodeAirDate;
-        public int dateKnown;
-        public int notificationSent = 0;
-
-        public Series(int id, string name, string imdbId, int[] lastViewed, int[] lastEpisode, int[] nextEpisode, DateTime nextEpisodeAirDate, int dateKnown, int notificationSent)
-        {
-            this.id = id;
-            this.name = name;
-            this.imdbId = imdbId;
-            this.lastViewed = lastViewed;
-            this.lastEpisode = lastEpisode;
-            this.nextEpisode = nextEpisode;
-            this.nextEpisodeAirDate = nextEpisodeAirDate;
-            this.dateKnown = dateKnown;
-            this.notificationSent = notificationSent;
-        }
-
-        public Series(string name, string imdbId, int[] lastEpisode, int[] nextEpisode, DateTime nextEpisodeAirDate, int dateKnown)
-        {
-            this.name = name;
-            this.imdbId = imdbId;
-            this.lastEpisode = lastEpisode;
-            this.nextEpisode = nextEpisode;
-            this.nextEpisodeAirDate = nextEpisodeAirDate;
-            this.dateKnown = dateKnown;
-        }
-    }
-    #endregion
 }
