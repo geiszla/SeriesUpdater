@@ -7,6 +7,7 @@ namespace SeriesUpdater.MainProgram
     class Variables
     {
         public static Form mainForm;
+        public const string ApplicationName = "Series Updater";
         public static NotifyIcon notifyIcon;
 
         public static int lastDeactivateTick;

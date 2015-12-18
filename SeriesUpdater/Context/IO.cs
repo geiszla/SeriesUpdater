@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Windows.Forms;
 
 namespace SeriesUpdater.Context
 {
     class IO
     {
+        // Series
         public static void ReadSeries()
         {
             if (!File.Exists(MainProgram.Variables.SeriesDataFileName)) return;
@@ -16,7 +18,7 @@ namespace SeriesUpdater.Context
                 while (dataReader.Peek() > -1)
                 {
                     string[] currRow = dataReader.ReadLine().Split(';');
-                    if (currRow.Length <= 1) continue;
+                    if (currRow.Length < 2) continue;
 
                     int id = whileCount;
                     string name = currRow[0];
@@ -37,11 +39,17 @@ namespace SeriesUpdater.Context
             }
         }
 
-        public static void WriteSeries()
+        public static void WriteSeries(string Name = null, string ImdbId = null)
         {
-            using (StreamWriter dataWriter = new StreamWriter(MainProgram.Variables.SeriesDataFileName, false))
+            initializeWrite();
+
+            bool IsAppend = ImdbId != null;
+            List<Series> seriesList = MainProgram.Variables.SeriesList;
+            List<Series> selectedSeries = IsAppend ? seriesList : new List<Series> { seriesList[seriesList.Count - 1] };
+
+            using (StreamWriter dataWriter = new StreamWriter(MainProgram.Variables.SeriesDataFileName, IsAppend))
             {
-                foreach (Series currSeries in MainProgram.Variables.SeriesList)
+                foreach (Series currSeries in selectedSeries)
                 {
                     string name = currSeries.Name;
                     string imdbId = currSeries.ImdbId;
@@ -58,26 +66,7 @@ namespace SeriesUpdater.Context
             }
         }
 
-        public static void WriteSeries(string name, string imdbId)
-        {
-            using (StreamWriter dataWriter = new StreamWriter(MainProgram.Variables.SeriesDataFileName, true))
-            {
-                List<Series> seriesList = MainProgram.Variables.SeriesList;
-                Series lastSeries = seriesList[seriesList.Count - 1];
-
-                string lastViewed = lastSeries.LastViewed.ToString();
-                string lastEpisode = lastSeries.LastEpisode.ToString();
-                string nextEpisode = lastSeries.NextEpisode.ToString();
-
-                string nextAirDate = lastSeries.NextEpisodeAirDate.ToString();
-                int dateKnown = lastSeries.DateKnown;
-                int notificationSent = lastSeries.NotificationSent;
-
-                dataWriter.WriteLine("{0};{1};{2};{3};{4};{5};{6};{7}", name, imdbId, lastViewed, lastEpisode,
-                    nextEpisode, nextAirDate, dateKnown, notificationSent);
-            }
-        }
-
+        // Settings
         public static void ReadSettings()
         {
             if (!File.Exists(MainProgram.Variables.SettingsFileName)) return;
@@ -95,22 +84,30 @@ namespace SeriesUpdater.Context
             }
         }
 
-        public static void WriteSettings()
+        public static void WriteSettings(string Name = null, string Value = null)
         {
-            using (StreamWriter settingsWriter = new StreamWriter(MainProgram.Variables.SettingsFileName, false))
+            initializeWrite();
+
+            bool IsAppend = Value == null && Name == null;
+            List<string[]> settingsList = IsAppend ? new List<string[]>() { new string[] { Name, Value } }
+                : Settings.GlobalSettings;
+
+            using (StreamWriter settingsWriter = new StreamWriter(MainProgram.Variables.SettingsFileName, IsAppend))
             {
-                foreach (string[] option in Settings.GlobalSettings)
+                foreach (string[] option in settingsList)
                 {
                     settingsWriter.WriteLine(option[0] + "=" + option[1]);
                 }
             }
         }
 
-        public static void WriteSettings(string optionName, string optionValue)
+        // Helper
+        static void initializeWrite()
         {
-            using (StreamWriter settingsWriter = new StreamWriter(MainProgram.Variables.SettingsFileName, false))
+            string dataFolderPath = MainProgram.Variables.DataFolderPath;
+            if (!Directory.Exists(dataFolderPath))
             {
-                settingsWriter.WriteLine(optionName + "=" + optionValue);
+                Directory.CreateDirectory(dataFolderPath);
             }
         }
     }

@@ -7,19 +7,21 @@ namespace SeriesUpdater.Context
 {
     class Settings
     {
+        const string startupKeyPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+
         public static List<string[]> GlobalSettings = new List<string[]> {
             new string[] { "SendNotifications", "True" },
             new string[] { "RunOnStartup", "False" } };
 
-        public static bool SetAutorun(bool IsAdd)
+        public static bool SetAutorun(bool IsAdd = false)
         {
-            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
+            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(startupKeyPath, true);
             
             if (IsAdd || (!IsAdd && !IsStartupItem()))
             {
                 DialogResult copyExecutableDialogResult =
-                    MessageBox.Show("Szeretné, ha a programról készülne egy másolat? Így a file törlése esetén is lehetséges a Windows indításakor való futtatás.",
-                    "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    MessageBox.Show("Do you want to save a copy of the executable? In this way start with Windows will be possible even if this file will be deleted.",
+                    "Start with Windows", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                 if (!File.Exists(MainProgram.Variables.ExecutableFileName) && copyExecutableDialogResult == DialogResult.Yes)
                 {
@@ -44,7 +46,7 @@ namespace SeriesUpdater.Context
 
         public static bool IsStartupItem()
         {
-            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
+            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(startupKeyPath, true);
             return registryKey.GetValue("SeriesUpdater") != null;
         }
 

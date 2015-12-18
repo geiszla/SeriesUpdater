@@ -29,8 +29,8 @@ namespace SeriesUpdater.MainProgram
 
             catch
             {
-                MessageBox.Show("Az azonosítás sikertelen volt. Nem megfelelő az IMDB azonosító, vagy nincs kapcsolat a szerverrel.",
-                    "Sikertelen azonosítás", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Couldn't get series information. IMDB id may be invalid or there is no connection to the server.",
+                    Variables.ApplicationName + ": Couldn't get series information", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return "";
             }
         }

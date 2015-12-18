@@ -29,7 +29,7 @@ namespace SeriesUpdater
         {
             if (searchBox.Text == "")
             {
-                MessageBox.Show("A kereséshez kérem adjon meg egy kulcsszót!", "Üres mező", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Please give a keyword to search for.", "No search keyword given", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             else
@@ -98,8 +98,8 @@ namespace SeriesUpdater
 
             if (seriesTable.Rows.Count == 0)
             {
-                MessageBox.Show("Nincs találat. Kérem próbálja újra más kulcsszóval!",
-                    "Nincs találat", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("No series found. Please try using another keyword.",
+                    "No series found", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             else

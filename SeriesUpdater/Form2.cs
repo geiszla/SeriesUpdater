@@ -27,17 +27,17 @@ namespace SeriesUpdater
         {
             if (nameTextBox.Text == "")
             {
-                MessageBox.Show("Kérem adjon egy nevet a felvett sorozatnak!", "Üres mező", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Please give the series a name.", "No name given", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             else if (imdbIdTextBox.Text == "")
             {
-                MessageBox.Show("A sorozat azonosításához kérem adja meg a megfelelő IMBD azonosítót!", "Üres mező", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Please give a valid IMDB ID of the series or search by name from the field above.", "No IMDB ID given", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             else if (lastViewedEpisodeTextBox.Text == "")
             {
-                MessageBox.Show("A sorozat követéséhez kérem adja meg a legutoljára látott részt!", "Üres mező", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Please give the last episode you watched from this series.", "No last viewed episode given", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             else
@@ -49,18 +49,18 @@ namespace SeriesUpdater
 
                 catch
                 {
-                    MessageBox.Show("Nem megfelelő az IMDB azonodító formátuma. A kód csak számokat tartalmazhat.", "Érvénytelen formátum", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("The IMDB ID can only contain numbers. Please check the given value.", "Invalid IMDB ID", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
                 if (!Episode.IsValidEpisodeString(lastViewedEpisodeTextBox.Text))
                 {
-                    MessageBox.Show("Nem megfelelő a megadott \"legutoljára látott epizód\" formátuma.", "Érvénytelen formátum", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Format of the given last viewed episode is invalid. Please give a valid value, eg. S05E13", "Invalid last viewed episode", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
                 addSeries();
-                Context.Notification.GetComingSeries(true);
+                Context.Notifications.ShowComingSeries(true);
             }
         }
 
@@ -91,8 +91,8 @@ namespace SeriesUpdater
 
                 catch
                 {
-                    MessageBox.Show("Nem megfelelő az IMDB azonodító formátuma. A kód csak számokat tartalmazhat.",
-                        "Érvénytelen formátum", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("The IMDB ID can only contain numbers. Please check the given value.",
+                        "Invalid IMDB ID", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
@@ -112,8 +112,8 @@ namespace SeriesUpdater
 
             else
             {
-                MessageBox.Show("A sorozat azonosításához kérem adja meg a megfelelő IMDB azonosítót!",
-                    "Üres mező", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Please give a valid IMDB ID of the desired series.",
+                    "Empty IMDB ID", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -207,8 +207,8 @@ namespace SeriesUpdater
 
             else
             {
-                MessageBox.Show("Ez a sorozat már benne van a listában, kérem válasszon egy másikat!",
-                    "Ismétlődő sorozat", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("This series is already in the list. Please select another one.",
+                    "Series already in list", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

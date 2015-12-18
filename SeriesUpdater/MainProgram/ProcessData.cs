@@ -9,10 +9,10 @@ namespace SeriesUpdater.MainProgram
         {
             DataTable seriesTable = new DataTable();
             seriesTable.Columns.Add("IMDB id", typeof(string));
-            seriesTable.Columns.Add("Név", typeof(string));
-            seriesTable.Columns.Add("Másképpen", typeof(string));
-            seriesTable.Columns.Add("Év", typeof(string));
-            seriesTable.Columns.Add("Típus", typeof(string));
+            seriesTable.Columns.Add("Name", typeof(string));
+            seriesTable.Columns.Add("AKA", typeof(string));
+            seriesTable.Columns.Add("Year", typeof(string));
+            seriesTable.Columns.Add("Type", typeof(string));
 
             foreach (ResultSeries currSeries in Variables.resultSeriesList)
             {

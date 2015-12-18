@@ -47,7 +47,7 @@
             this.addButton.Name = "addButton";
             this.addButton.Size = new System.Drawing.Size(75, 23);
             this.addButton.TabIndex = 7;
-            this.addButton.Text = "Hozzáadás";
+            this.addButton.Text = "Add";
             this.addButton.UseVisualStyleBackColor = true;
             this.addButton.Click += new System.EventHandler(this.addButton_Click);
             // 
@@ -56,15 +56,15 @@
             this.nameLabel.AutoSize = true;
             this.nameLabel.Location = new System.Drawing.Point(13, 15);
             this.nameLabel.Name = "nameLabel";
-            this.nameLabel.Size = new System.Drawing.Size(30, 13);
+            this.nameLabel.Size = new System.Drawing.Size(38, 13);
             this.nameLabel.TabIndex = 1;
-            this.nameLabel.Text = "Név:";
+            this.nameLabel.Text = "Name:";
             // 
             // nameTextBox
             // 
-            this.nameTextBox.Location = new System.Drawing.Point(49, 12);
+            this.nameTextBox.Location = new System.Drawing.Point(57, 12);
             this.nameTextBox.Name = "nameTextBox";
-            this.nameTextBox.Size = new System.Drawing.Size(190, 20);
+            this.nameTextBox.Size = new System.Drawing.Size(182, 20);
             this.nameTextBox.TabIndex = 1;
             this.nameTextBox.TextChanged += new System.EventHandler(this.nameTextBox_TextChanged);
             this.nameTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.nameTextBox_KeyDown);
@@ -93,7 +93,7 @@
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(75, 23);
             this.cancelButton.TabIndex = 6;
-            this.cancelButton.Text = "Mégse";
+            this.cancelButton.Text = "Cancel";
             this.cancelButton.UseVisualStyleBackColor = true;
             this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
             // 
@@ -102,15 +102,15 @@
             this.lastViewedEpisodeLabel.AutoSize = true;
             this.lastViewedEpisodeLabel.Location = new System.Drawing.Point(13, 75);
             this.lastViewedEpisodeLabel.Name = "lastViewedEpisodeLabel";
-            this.lastViewedEpisodeLabel.Size = new System.Drawing.Size(191, 13);
+            this.lastViewedEpisodeLabel.Size = new System.Drawing.Size(172, 13);
             this.lastViewedEpisodeLabel.TabIndex = 6;
-            this.lastViewedEpisodeLabel.Text = "Legutolsó megnézett rész (pl. S04E02):";
+            this.lastViewedEpisodeLabel.Text = "Last viewed episode (eg. S04E02):";
             // 
             // lastViewedEpisodeTextBox
             // 
-            this.lastViewedEpisodeTextBox.Location = new System.Drawing.Point(210, 72);
+            this.lastViewedEpisodeTextBox.Location = new System.Drawing.Point(191, 72);
             this.lastViewedEpisodeTextBox.Name = "lastViewedEpisodeTextBox";
-            this.lastViewedEpisodeTextBox.Size = new System.Drawing.Size(62, 20);
+            this.lastViewedEpisodeTextBox.Size = new System.Drawing.Size(81, 20);
             this.lastViewedEpisodeTextBox.TabIndex = 5;
             this.lastViewedEpisodeTextBox.TextChanged += new System.EventHandler(this.lastViewedEpisodeTextBox_TextChanged);
             // 

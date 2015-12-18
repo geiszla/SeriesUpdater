@@ -12,7 +12,7 @@ namespace SeriesUpdater.Context
             newLabel.AutoSize = true;
             newLabel.AutoEllipsis = true;
             newLabel.Font = new Font("Microsoft Sans Serif", 8.25F,
-                (IsHeader ? FontStyle.Bold : FontStyle.Regular) | (IsHeader ? FontStyle.Underline : FontStyle.Regular),
+                IsHeader ? (FontStyle.Bold | FontStyle.Underline) : FontStyle.Regular,
                 GraphicsUnit.Point, 238);
             newLabel.Margin = new Padding(3, 0, 3, 10);
             newLabel.Name = Name;

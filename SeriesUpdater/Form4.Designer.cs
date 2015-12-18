@@ -45,46 +45,46 @@
             this.titleLabel1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.titleLabel1.Location = new System.Drawing.Point(13, 9);
             this.titleLabel1.Name = "titleLabel1";
-            this.titleLabel1.Size = new System.Drawing.Size(282, 13);
+            this.titleLabel1.Size = new System.Drawing.Size(263, 13);
             this.titleLabel1.TabIndex = 0;
-            this.titleLabel1.Text = "A bejelentkezéshez adja meg a Google fiókjához";
+            this.titleLabel1.Text = "To log in please give the email and password";
             // 
             // titleLabel2
             // 
             this.titleLabel2.AutoSize = true;
             this.titleLabel2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.titleLabel2.Location = new System.Drawing.Point(10, 24);
+            this.titleLabel2.Location = new System.Drawing.Point(15, 24);
             this.titleLabel2.Name = "titleLabel2";
-            this.titleLabel2.Size = new System.Drawing.Size(194, 13);
+            this.titleLabel2.Size = new System.Drawing.Size(144, 13);
             this.titleLabel2.TabIndex = 1;
-            this.titleLabel2.Text = " tartozó email-címét és jelszavát!";
+            this.titleLabel2.Text = "of your Google account.";
             // 
             // emailTitleLabel
             // 
             this.emailTitleLabel.AutoSize = true;
             this.emailTitleLabel.Location = new System.Drawing.Point(12, 54);
             this.emailTitleLabel.Name = "emailTitleLabel";
-            this.emailTitleLabel.Size = new System.Drawing.Size(59, 13);
+            this.emailTitleLabel.Size = new System.Drawing.Size(38, 13);
             this.emailTitleLabel.TabIndex = 2;
-            this.emailTitleLabel.Text = "E-mail cím:";
+            this.emailTitleLabel.Text = "E-mail:";
             // 
             // passwordTitleLabel
             // 
             this.passwordTitleLabel.AutoSize = true;
             this.passwordTitleLabel.Location = new System.Drawing.Point(13, 80);
             this.passwordTitleLabel.Name = "passwordTitleLabel";
-            this.passwordTitleLabel.Size = new System.Drawing.Size(39, 13);
+            this.passwordTitleLabel.Size = new System.Drawing.Size(56, 13);
             this.passwordTitleLabel.TabIndex = 3;
-            this.passwordTitleLabel.Text = "Jelszó:";
+            this.passwordTitleLabel.Text = "Password:";
             // 
             // rememberPasswordCheckBox
             // 
             this.rememberPasswordCheckBox.AutoSize = true;
             this.rememberPasswordCheckBox.Location = new System.Drawing.Point(16, 103);
             this.rememberPasswordCheckBox.Name = "rememberPasswordCheckBox";
-            this.rememberPasswordCheckBox.Size = new System.Drawing.Size(119, 17);
+            this.rememberPasswordCheckBox.Size = new System.Drawing.Size(213, 17);
             this.rememberPasswordCheckBox.TabIndex = 4;
-            this.rememberPasswordCheckBox.Text = "Jelszó megjegyzése";
+            this.rememberPasswordCheckBox.Text = "Remember password (stored encrypted)";
             this.rememberPasswordCheckBox.UseVisualStyleBackColor = true;
             // 
             // emailTextBox
@@ -104,11 +104,11 @@
             // 
             // loginButton
             // 
-            this.loginButton.Location = new System.Drawing.Point(91, 126);
+            this.loginButton.Location = new System.Drawing.Point(91, 127);
             this.loginButton.Name = "loginButton";
             this.loginButton.Size = new System.Drawing.Size(127, 29);
             this.loginButton.TabIndex = 7;
-            this.loginButton.Text = "Bejelentkezés";
+            this.loginButton.Text = "Log in";
             this.loginButton.UseVisualStyleBackColor = true;
             this.loginButton.Click += new System.EventHandler(this.loginButton_Click);
             // 
@@ -139,7 +139,7 @@
             this.MaximizeBox = false;
             this.Name = "Form4";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Bejelentkezés";
+            this.Text = "Login";
             this.TopMost = true;
             this.ResumeLayout(false);
             this.PerformLayout();

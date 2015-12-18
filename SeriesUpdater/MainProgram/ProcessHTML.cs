@@ -56,7 +56,7 @@ namespace SeriesUpdater.MainProgram
             string seasonName = GetInnerHTMLByAttribute(0, HTMLText, "episode_top", "id")[0];
             if (seasonName == null)
             {
-                MessageBox.Show("Ennek a sorozatnak nincsenek epizódjai. Kérem válasszon egy másikat!", "Érvénytelen sorozat", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("This series doesn't have any episodes. Please choose another one!", "Invalid series", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return new Episode();
             }
 

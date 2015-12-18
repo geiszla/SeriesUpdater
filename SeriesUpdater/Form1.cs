@@ -30,8 +30,8 @@ namespace SeriesUpdater
 
             if (MainProgram.Variables.isFirst)
             {
-                if (!Context.Settings.IsStartupItem() && MessageBox.Show("Szeretné, hogy a program automatikusan elinduljon a Windows indításakor?",
-                    "Indítás a Windowszal", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (!Context.Settings.IsStartupItem() && MessageBox.Show("Do you want to start Series Updater with Windows?",
+                    "Start with Windows", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     RunOnStartupToolStripMenuItem.Checked = Context.Settings.SetAutorun(true);
                 }
@@ -92,7 +92,7 @@ namespace SeriesUpdater
         private void deleteImage_Click(object sender, EventArgs e)
         {
             Deactivate -= Form1_Deactivate;
-            if (MessageBox.Show("Biztosan törölni akarod ezt a sorozatot?", "Sorozat törlése",
+            if (MessageBox.Show("Are you sure you want to remove this series from the list?", "Remove series",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 PictureBox deleteImage = (PictureBox)sender;
@@ -174,7 +174,7 @@ namespace SeriesUpdater
 
         private void autorunStripMenuItem_Click(object sender, EventArgs e)
         {
-            RunOnStartupToolStripMenuItem.Checked = Context.Settings.SetAutorun(false);
+            RunOnStartupToolStripMenuItem.Checked = Context.Settings.SetAutorun();
         }
 
         private void notificationContextMenuItem_Click(object sender, EventArgs e)
@@ -184,9 +184,9 @@ namespace SeriesUpdater
 
         private void customLanguageToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string message = "Ahhoz hogy megváltoztasd a megjelenő IMDB címek nyelvét, először be kell ezt állítanod a saját IMDB fiókodban (https://secure.imdb.com/register-imdb/siteprefs) a címek nyelvét, ezután itt be kell jelentkezned a Google fiókodat használva. Szeretnél most bejelentkezni?";
+            string message = "To change the language of the display title of series, first you have to set it up in your IMDB account (https://secure.imdb.com/register-imdb/siteprefs), then you can log in here using your Google credentials. Do you want to log in now?";
 
-            if (MessageBox.Show(message, "IMDB Nyelv módosítás", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+            if (MessageBox.Show(message, "Change IMDB language", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
             {
                 Form4 loginForm = new Form4();
                 loginForm.ShowDialog();
@@ -222,21 +222,21 @@ namespace SeriesUpdater
                 Left = Screen.PrimaryScreen.WorkingArea.Width - Width - 10;
             }
 
-            Top = Screen.PrimaryScreen.WorkingArea.Height - Height - 10;
+            Top = Screen.PrimaryScreen.WorkingArea.Height - Height;
         }
 
         void updateSeries()
         {
             if (MainProgram.Variables.SeriesList.Count > 0)
             {
-                string text = "Frissítés folyamatban. A frissítés alatt nem tudod megnyitni a programot.";
-                Context.Notification.ShowNotification("Frissítés", text, 3000);
+                string text = "Series Updater is updating information about your series. Please wait until the process finishes.";
+                Context.Notifications.ShowNotification("Updating...", text, 3000);
             }
 
             else
             {
-                string text = "Az ikonra kattintva nyithatja meg a programot, adhat hozzá, illetve a későbbiekben törölhet sorozatokat.";
-                Context.Notification.ShowNotification("Sorozat figyelő", text, 3000);
+                string text = "Click on this icon to open Series Updater, add and later delete series.";
+                Context.Notifications.ShowNotification("Series Updater", text, 3000);
             }
 
             if (MainProgram.Variables.SeriesList.Count > 0)
@@ -251,11 +251,11 @@ namespace SeriesUpdater
 
             if (MainProgram.Variables.SeriesList.Count > 0)
             {
-                string text = "Sikeresen frissültek a legújabb epizódok. Most már megnyithatja a programot.";
-                Context.Notification.ShowNotification("Sikeres frissítés", text, 3000);
+                string text = "Series information is downloaded successfully. You can open the program now.";
+                Context.Notifications.ShowNotification("Update successful", text, 3000);
             }
 
-            Context.Notification.GetComingSeries(false);
+            Context.Notifications.ShowComingSeries(false);
         }
 
         void applyData(bool isAdd)
@@ -271,9 +271,9 @@ namespace SeriesUpdater
             if (MainProgram.Variables.SeriesList.Count > 0)
             {
                 Label deleteLabel = Context.Controls.CreateLabel("deleteLabel", "", true);
-                Label nameHeaderLabel = Context.Controls.CreateLabel("nameHeaderLabel", "Név", true);
-                Label lastViewedHeaderLabel = Context.Controls.CreateLabel("lastViewedHeaderLabel", "Legutóbb megtekintett", true);
-                Label lastEpisodeHeaderLabel = Context.Controls.CreateLabel("lastEpisodeHeaderLabel", "Legújabb", true);
+                Label nameHeaderLabel = Context.Controls.CreateLabel("nameHeaderLabel", "Name", true);
+                Label lastViewedHeaderLabel = Context.Controls.CreateLabel("lastViewedHeaderLabel", "Last Viewed", true);
+                Label lastEpisodeHeaderLabel = Context.Controls.CreateLabel("lastEpisodeHeaderLabel", "Newest", true);
 
                 TableLayoutPanel seriesTable = Context.Controls.CreateTableLayoutPanel(deleteLabel, nameHeaderLabel,
                     lastViewedHeaderLabel, lastEpisodeHeaderLabel);
@@ -357,7 +357,7 @@ namespace SeriesUpdater
 
                     else if (!Convert.ToBoolean(option[1]) && Context.Settings.IsStartupItem())
                     {
-                        Context.Settings.SetAutorun(false);
+                        Context.Settings.SetAutorun();
                     }
                 }
             }
@@ -421,7 +421,7 @@ namespace SeriesUpdater
                         && MainProgram.Variables.SeriesList[id].LastEpisode.EpisodeNumber < MainProgram.Variables.SeriesList[id].LastViewed.EpisodeNumber))
                 {
                     Deactivate -= Form1_Deactivate;
-                    MessageBox.Show(this, "A legutoljára látott epizód számának kisebbnek kell lennie, mint az utoljára megjelent epizód.", "Érvénytelen epizód",
+                    MessageBox.Show(this, "The number of the last viewed episode has to be smaller than the one of the newest episode.", "Invalid episode number",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Show();
                     Deactivate += Form1_Deactivate;
