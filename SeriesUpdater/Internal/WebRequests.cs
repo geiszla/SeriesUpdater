@@ -5,26 +5,25 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-namespace SeriesUpdater.MainProgram
+namespace SeriesUpdater.Internal
 {
-    class WebRequest
+    class WebRequests
     {
         public static string RequestPage(string Url)
         {
-            HttpWebRequest webRequest = (HttpWebRequest)System.Net.WebRequest.Create(Url);
+            WebRequest webRequest = WebRequest.Create(Url);
             webRequest.Method = "GET";
 
             try
             {
-                WebResponse webResponse = webRequest.GetResponse();
-
-                string HTMLText;
-                using (StreamReader seriesRequestReader = new StreamReader(webResponse.GetResponseStream(), System.Text.Encoding.UTF8))
+                string responseHTML;
+                using (WebResponse webResponse = webRequest.GetResponse())
+                using (StreamReader responseReader = new StreamReader(webResponse.GetResponseStream(), System.Text.Encoding.UTF8))
                 {
-                    HTMLText = seriesRequestReader.ReadToEnd();
+                    responseHTML = responseReader.ReadToEnd();
                 }
 
-                return HTMLText;
+                return responseHTML;
             }
 
             catch
@@ -39,12 +38,7 @@ namespace SeriesUpdater.MainProgram
         {
             foreach (Series currSeries in Variables.SeriesList)
             {
-                string id = currSeries.ImdbId;
-                string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes";
-
-                ProcessHTML.CurrNextAirDate = new DateTime();
-                ProcessHTML.CurrNextDateIndex = 0;
-                Episode newLastEpisode = ProcessHTML.GetLatestEpisodeFromHTML(id, RequestPage(url), false);
+                Episode newLastEpisode = ProcessHTML.GetLatestAndNextEpisode(currSeries.ImdbId, false);
 
                 if (newLastEpisode != currSeries.LastEpisode)
                 {
@@ -63,7 +57,7 @@ namespace SeriesUpdater.MainProgram
             string innerHTML = "";
             for (int i = 0; i < 10; i++)
             {
-                if ((innerHTML = ProcessHTML.GetInnerHTMLByAttribute(startIndex, HTMLText, "result_text", "class")[0]) == null)
+                if ((innerHTML = ProcessHTML.GetInnerHTMLByAttribute("result_text", "class", HTMLText, startIndex).Item1) == null)
                 {
                     break;
                 }
@@ -92,28 +86,28 @@ namespace SeriesUpdater.MainProgram
                     Match yearMatch = Regex.Match(innerHTML, @"> \(([0-9]*)\)", RegexOptions.IgnoreCase);
                     currResult.startYear = yearMatch.Groups[1].Value;
 
-                    Variables.resultSeriesList.Add(currResult);
+                    Variables.ResultSeriesList.Add(currResult);
                 }
 
-                startIndex = Convert.ToInt32(ProcessHTML.GetInnerHTMLByAttribute(startIndex, HTMLText, "result_text", "class")[1]);
+                startIndex = Convert.ToInt32(ProcessHTML.GetInnerHTMLByAttribute("result_text", "class", HTMLText, startIndex).Item2);
             }
         }
 
         public static string GetAirTimeByName(string Name)
         {
             string content = RequestPage("http://services.tvrage.com/feeds/fullschedule.php?country=US");
-            string[] showData = ProcessHTML.GetInnerHTMLByAttribute(0, content, Name, "name");
+            Tuple<string, int> showData = ProcessHTML.GetInnerHTMLByAttribute(Name, "name", content);
 
-            if (showData[0] == null) return default(DateTime).ToString("H:mm");
+            if (showData == null) return default(DateTime).ToString("H:mm");
 
-            int startIndex = content.IndexOf("attr=\"", content.LastIndexOf("<time", Convert.ToInt32(showData[1]))) + 6;
+            int startIndex = content.IndexOf("attr=\"", content.LastIndexOf("<time", showData.Item2)) + 6;
             int endIndex = content.IndexOf("\"", startIndex) + 1;
             string airTime = content.Substring(startIndex, endIndex - startIndex - 1);
 
             return Convert.ToDateTime(airTime).ToString("HH:mm");
         }
 
-        public static string GetNameById(string ImdbId)
+        public static string GetNameById(string ImdbId) // Not used
         {
             string requestURL = "http://www.omdbapi.com/?i=tt" + ImdbId + "&plot=short&r=json";
             string content = RequestPage(requestURL);
@@ -122,24 +116,22 @@ namespace SeriesUpdater.MainProgram
             return json["Title"].ToString();
         }
 
-        public static void login()
+        public static void login() // Not used
         {
-            /*
-            string imdbPage = requestPage("https://secure.imdb.com/oauth/login");
+            //string imdbPage = requestPage("https://secure.imdb.com/oauth/login");
 
-            string pattern = "onclick=\"window.open\\('(.*)',";
-            List<string> links = new List<string>();
-            foreach (Match match in Regex.Matches(imdbPage, pattern))
-            {
-                links.Add(match.Groups[1].Value);
-            }
+            //string pattern = "onclick=\"window.open\\('(.*)',";
+            //List<string> links = new List<string>();
+            //foreach (Match match in Regex.Matches(imdbPage, pattern))
+            //{
+            //    links.Add(match.Groups[1].Value);
+            //}
 
-            OpenIdRelyingParty OIDRP = new OpenIdRelyingParty();
-            var str = OIDRP.GetResponse();
-            if (str != null)
-            {
-            }
-            */
+            //OpenIdRelyingParty OIDRP = new OpenIdRelyingParty();
+            //var str = OIDRP.GetResponse();
+            //if (str != null)
+            //{
+            //}
         }
     }
 }

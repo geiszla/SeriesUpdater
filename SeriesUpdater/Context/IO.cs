@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Windows.Forms;
 
 namespace SeriesUpdater.Context
 {
@@ -10,9 +9,9 @@ namespace SeriesUpdater.Context
         // Series
         public static void ReadSeries()
         {
-            if (!File.Exists(MainProgram.Variables.SeriesDataFileName)) return;
+            if (!File.Exists(Internal.Variables.SeriesDataFileName)) return;
 
-            using (StreamReader dataReader = new StreamReader(MainProgram.Variables.SeriesDataFileName))
+            using (StreamReader dataReader = new StreamReader(Internal.Variables.SeriesDataFileName))
             {
                 int whileCount = 0;
                 while (dataReader.Peek() > -1)
@@ -32,7 +31,7 @@ namespace SeriesUpdater.Context
 
                     Series currSeries = new Series(id, name, imdbId, lastViewed, lastEpisode,
                         nextEpisode, nextEpisodeAirDate, dateKnown, notificationSent);
-                    MainProgram.Variables.SeriesList.Add(currSeries);
+                    Internal.Variables.SeriesList.Add(currSeries);
 
                     whileCount++;
                 }
@@ -44,10 +43,10 @@ namespace SeriesUpdater.Context
             initializeWrite();
 
             bool IsAppend = ImdbId != null;
-            List<Series> seriesList = MainProgram.Variables.SeriesList;
-            List<Series> selectedSeries = IsAppend ? seriesList : new List<Series> { seriesList[seriesList.Count - 1] };
+            List<Series> seriesList = Internal.Variables.SeriesList;
+            List<Series> selectedSeries = IsAppend ? new List<Series> { seriesList[seriesList.Count - 1] } : seriesList;
 
-            using (StreamWriter dataWriter = new StreamWriter(MainProgram.Variables.SeriesDataFileName, IsAppend))
+            using (StreamWriter dataWriter = new StreamWriter(Internal.Variables.SeriesDataFileName, IsAppend))
             {
                 foreach (Series currSeries in selectedSeries)
                 {
@@ -69,9 +68,9 @@ namespace SeriesUpdater.Context
         // Settings
         public static void ReadSettings()
         {
-            if (!File.Exists(MainProgram.Variables.SettingsFileName)) return;
+            if (!File.Exists(Internal.Variables.SettingsFileName)) return;
 
-            using (StreamReader settingsReader = new StreamReader(MainProgram.Variables.SettingsFileName))
+            using (StreamReader settingsReader = new StreamReader(Internal.Variables.SettingsFileName))
             {
                 while (settingsReader.Peek() > -1)
                 {
@@ -92,7 +91,7 @@ namespace SeriesUpdater.Context
             List<string[]> settingsList = IsAppend ? new List<string[]>() { new string[] { Name, Value } }
                 : Settings.GlobalSettings;
 
-            using (StreamWriter settingsWriter = new StreamWriter(MainProgram.Variables.SettingsFileName, IsAppend))
+            using (StreamWriter settingsWriter = new StreamWriter(Internal.Variables.SettingsFileName, IsAppend))
             {
                 foreach (string[] option in settingsList)
                 {
@@ -104,7 +103,7 @@ namespace SeriesUpdater.Context
         // Helper
         static void initializeWrite()
         {
-            string dataFolderPath = MainProgram.Variables.DataFolderPath;
+            string dataFolderPath = Internal.Variables.DataFolderPath;
             if (!Directory.Exists(dataFolderPath))
             {
                 Directory.CreateDirectory(dataFolderPath);

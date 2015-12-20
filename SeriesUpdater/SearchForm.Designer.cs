@@ -1,6 +1,6 @@
 ﻿namespace SeriesUpdater
 {
-    partial class Form3
+    partial class SearchForm
     {
         /// <summary>
         /// Required designer variable.

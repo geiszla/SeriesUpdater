@@ -8,12 +8,13 @@ namespace SeriesUpdater.Context
     {
         public static void ShowComingSeries(bool IsAdd)
         {
-            if (!Convert.ToBoolean(Settings.GlobalSettings[0][1])) return;
+            if (!Convert.ToBoolean(Settings.GlobalSettings[0][1])
+                || Internal.Variables.SeriesList.Count == 0) return;
 
             List<Series> todaySeries = new List<Series>();
             List<Series> tomorrowSeries = new List<Series>();
 
-            foreach (Series currSeries in MainProgram.Variables.SeriesList)
+            foreach (Series currSeries in Internal.Variables.SeriesList)
             {
                 if (currSeries.DateKnown < 3 || DateTime.Now.Year < currSeries.NextEpisodeAirDate.Year) continue;
 
@@ -31,13 +32,15 @@ namespace SeriesUpdater.Context
                 }
             }
 
-            IO.WriteSeries();
-            if (todaySeries.Count > 0) ShowNewEpisodeNotification("today", todaySeries);
-            if (tomorrowSeries.Count > 0) ShowNewEpisodeNotification("tomorrow", tomorrowSeries);
+            if (todaySeries.Count != 0 || tomorrowSeries.Count != 0) IO.WriteSeries();
+            ShowNewEpisodeNotification("today", todaySeries);
+            ShowNewEpisodeNotification("tomorrow", tomorrowSeries);
         }
 
         public static void ShowNewEpisodeNotification(string DayString, List<Series> UpcomingSeries)
         {
+            if (UpcomingSeries.Count == 0) return;
+
             string notificationTitle = null;
             string notificationText = null;
 
@@ -77,7 +80,7 @@ namespace SeriesUpdater.Context
 
         public static void ShowNotification(string Title, string Text, int Timeout)
         {
-            NotifyIcon notifyIcon = MainProgram.Variables.notifyIcon;
+            NotifyIcon notifyIcon = Internal.Variables.NotifyIcon;
 
             notifyIcon.BalloonTipTitle = Title;
             notifyIcon.BalloonTipText = Text;

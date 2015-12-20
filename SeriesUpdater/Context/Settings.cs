@@ -23,10 +23,10 @@ namespace SeriesUpdater.Context
                     MessageBox.Show("Do you want to save a copy of the executable? In this way start with Windows will be possible even if this file will be deleted.",
                     "Start with Windows", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
-                if (!File.Exists(MainProgram.Variables.ExecutableFileName) && copyExecutableDialogResult == DialogResult.Yes)
+                if (!File.Exists(Internal.Variables.ExecutableFileName) && copyExecutableDialogResult == DialogResult.Yes)
                 {
-                    File.Copy(Application.ExecutablePath, MainProgram.Variables.ExecutableFileName);
-                    registryKey.SetValue("SeriesUpdater", MainProgram.Variables.ExecutableFileName);
+                    File.Copy(Application.ExecutablePath, Internal.Variables.ExecutableFileName);
+                    registryKey.SetValue("SeriesUpdater", Internal.Variables.ExecutableFileName);
                 }
 
                 else
@@ -50,9 +50,9 @@ namespace SeriesUpdater.Context
             return registryKey.GetValue("SeriesUpdater") != null;
         }
 
-        public static bool IsFirstCheck()
+        public static bool IsFirst()
         {
-            return !Directory.Exists(MainProgram.Variables.DataFolderPath);
+            return !Directory.Exists(Internal.Variables.DataFolderPath);
         }
 
         public static void ChangeSettings(int Number, string Value)

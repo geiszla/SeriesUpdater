@@ -5,12 +5,12 @@ using System.Windows.Forms;
 
 namespace SeriesUpdater
 {
-    public partial class Form4 : Form
+    public partial class LoginForm : Form
     {
         string email;
         string password;
 
-        public Form4()
+        public LoginForm()
         {
             InitializeComponent();
         }

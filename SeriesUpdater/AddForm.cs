@@ -1,11 +1,12 @@
-﻿using System;
+﻿using SeriesUpdater.Internal;
+using System;
 using System.Windows.Forms;
 
 namespace SeriesUpdater
 {
-    public partial class Form2 : Form
+    public partial class AddForm : Form
     {
-        public Form2()
+        public AddForm()
         {
             InitializeComponent();
         }
@@ -14,7 +15,7 @@ namespace SeriesUpdater
         private void Form2_Load(object sender, EventArgs e)
         {
             placeForm();
-            MainProgram.Variables.isAddedSeries = false;
+            Variables.IsAddedSeries = false;
             ActiveControl = nameTextBox;
         }
 
@@ -66,16 +67,16 @@ namespace SeriesUpdater
 
         private void Form2_FormClosing(object sender, FormClosingEventArgs e)
         {
-            MainProgram.Variables.isAddFormOpened = false;
+            Variables.IsAddFormOpened = false;
         }
 
         private void searchButton_Click(object sender, EventArgs e)
         {
-            MainProgram.Variables.isSelectedSeries = false;
+            Variables.IsSelectedSeries = false;
 
-            MainProgram.Variables.searchQuery = nameTextBox.Text;
+            Variables.SearchQuery = nameTextBox.Text;
 
-            Form3 searchForm = new Form3();
+            SearchForm searchForm = new SearchForm();
             searchForm.FormClosed += searchForm_FormClosed;
             searchForm.ShowDialog();
         }
@@ -98,14 +99,12 @@ namespace SeriesUpdater
 
                 Cursor.Current = Cursors.WaitCursor;
                 string url = "http://www.imdb.com/title/" + "tt" + Convert.ToInt32(imdbIdTextBox.Text) + "/episodes";
-                string HTMLText = MainProgram.WebRequest.RequestPage(url);
-                MainProgram.ProcessHTML.CurrNextAirDate = new DateTime();
-                MainProgram.ProcessHTML.CurrNextDateIndex = 0;
-                Episode latestEp = MainProgram.ProcessHTML.GetLatestEpisodeFromHTML(imdbIdTextBox.Text, HTMLText, false);
+                string HTMLText = WebRequests.RequestPage(url);
+                Episode latestEp = ProcessHTML.GetEpisodesFroHTML(imdbIdTextBox.Text, HTMLText, false);
 
                 if (HTMLText != "")
                 {
-                    nameTextBox.Text = MainProgram.ProcessHTML.GetNameFromHTML(HTMLText);
+                    nameTextBox.Text = ProcessHTML.GetNameFromHTML(HTMLText);
                     lastViewedEpisodeTextBox.Text = latestEp.ToString();
                 }
             }
@@ -119,11 +118,11 @@ namespace SeriesUpdater
 
         void searchForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if (MainProgram.Variables.isSelectedSeries)
+            if (Variables.IsSelectedSeries)
             {
-                imdbIdTextBox.Text = MainProgram.Variables.selectedSeries.ImdbId;
-                nameTextBox.Text = MainProgram.Variables.selectedSeries.Name;
-                lastViewedEpisodeTextBox.Text = MainProgram.Variables.selectedSeries.LastEpisode.ToString();
+                imdbIdTextBox.Text = Variables.SelectedSeries.ImdbId;
+                nameTextBox.Text = Variables.SelectedSeries.Name;
+                lastViewedEpisodeTextBox.Text = Variables.SelectedSeries.LastEpisode.ToString();
             }
         }
 
@@ -169,7 +168,7 @@ namespace SeriesUpdater
         {
             string imdbId = imdbIdTextBox.Text;
             bool isFound = false;
-            foreach (Series currSeries in MainProgram.Variables.SeriesList)
+            foreach (Series currSeries in Internal.Variables.SeriesList)
             {
                 if (imdbId == currSeries.ImdbId)
                 {
@@ -181,18 +180,18 @@ namespace SeriesUpdater
             {
                 Cursor.Current = Cursors.WaitCursor;
 
-                Series newSeries = new Series(MainProgram.Variables.SeriesList.Count, nameTextBox.Text, imdbId,
+                Series newSeries = new Series(Internal.Variables.SeriesList.Count, nameTextBox.Text, imdbId,
                     new Episode(lastViewedEpisodeTextBox.Text), new Episode(), new Episode(), new DateTime(), 3, 0);
-                MainProgram.Variables.SeriesList.Add(newSeries);
+                Internal.Variables.SeriesList.Add(newSeries);
 
-                if (MainProgram.Variables.selectedSeries.ImdbId == newSeries.ImdbId)
+                if (Internal.Variables.SelectedSeries.ImdbId == newSeries.ImdbId)
                 {
-                    newSeries.LastEpisode = MainProgram.Variables.selectedSeries.LastEpisode;
-                    newSeries.NextEpisode = MainProgram.Variables.selectedSeries.NextEpisode;
-                    newSeries.NextEpisodeAirDate = MainProgram.Variables.selectedSeries.NextEpisodeAirDate;
+                    newSeries.LastEpisode = Internal.Variables.SelectedSeries.LastEpisode;
+                    newSeries.NextEpisode = Internal.Variables.SelectedSeries.NextEpisode;
+                    newSeries.NextEpisodeAirDate = Internal.Variables.SelectedSeries.NextEpisodeAirDate;
                 }
 
-                if (MainProgram.Variables.SeriesList[MainProgram.Variables.SeriesList.Count - 1].LastEpisode.SeasonNumber == 0)
+                if (Internal.Variables.SeriesList[Internal.Variables.SeriesList.Count - 1].LastEpisode.SeasonNumber == 0)
                 {
                     return;
                 }
@@ -200,7 +199,7 @@ namespace SeriesUpdater
                 Context.IO.WriteSeries(newSeries.Name, newSeries.ImdbId);
 
                 Cursor.Current = Cursors.Arrow;
-                MainProgram.Variables.isAddedSeries = true;
+                Internal.Variables.IsAddedSeries = true;
 
                 Close();
             }

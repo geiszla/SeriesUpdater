@@ -4,9 +4,9 @@ using System.Windows.Forms;
 
 namespace SeriesUpdater
 {
-    public partial class Form3 : Form
+    public partial class SearchForm : Form
     {
-        public Form3()
+        public SearchForm()
         {
             InitializeComponent();
         }
@@ -16,9 +16,9 @@ namespace SeriesUpdater
         {
             Visible = false;
 
-            if (MainProgram.Variables.searchQuery != "")
+            if (Internal.Variables.SearchQuery != "")
             {
-                searchBox.Text = MainProgram.Variables.searchQuery;
+                searchBox.Text = Internal.Variables.SearchQuery;
                 startSearch();
             }
 
@@ -44,18 +44,14 @@ namespace SeriesUpdater
             string imdbId = resultTable.SelectedRows[0].Cells[0].Value.ToString();
             string name = resultTable.SelectedRows[0].Cells[1].Value.ToString();
 
-            MainProgram.Variables.selectedSeries = new Series(name, imdbId, new Episode(), new Episode(), new DateTime(), 3);
+            Internal.Variables.SelectedSeries = new Series(name, imdbId, new Episode(), new Episode(), new DateTime(), 3);
 
-            string id = resultTable.SelectedRows[0].Cells[0].Value.ToString();
-            string url = "http://www.imdb.com/title/" + "tt" + id + "/episodes";
+            string id = resultTable.SelectedRows[0].Cells[0].Value.ToString();            
+            Internal.Variables.SelectedSeries.LastEpisode = Internal.ProcessHTML.GetLatestAndNextEpisode(id, true);
 
-            MainProgram.ProcessHTML.CurrNextAirDate = new DateTime();
-            MainProgram.ProcessHTML.CurrNextDateIndex = 0;
-            MainProgram.Variables.selectedSeries.LastEpisode = MainProgram.ProcessHTML.GetLatestEpisodeFromHTML(id, MainProgram.WebRequest.RequestPage(url), true);
-
-            if (MainProgram.Variables.selectedSeries.LastEpisode.SeasonNumber != 0)
+            if (Internal.Variables.SelectedSeries.LastEpisode.SeasonNumber != 0)
             {
-                MainProgram.Variables.isSelectedSeries = true;
+                Internal.Variables.IsSelectedSeries = true;
                 Close();
             }
         }
@@ -90,11 +86,11 @@ namespace SeriesUpdater
         #region Functions
         void startSearch()
         {
-            MainProgram.Variables.resultSeriesList.Clear();
+            Internal.Variables.ResultSeriesList.Clear();
             Cursor.Current = Cursors.WaitCursor;
 
-            MainProgram.WebRequest.SearchForSeries(searchBox.Text);
-            DataTable seriesTable = MainProgram.ProcessData.createTable();
+            Internal.WebRequests.SearchForSeries(searchBox.Text);
+            DataTable seriesTable = Internal.ProcessData.CreateTable();
 
             if (seriesTable.Rows.Count == 0)
             {

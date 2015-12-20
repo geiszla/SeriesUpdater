@@ -12,7 +12,16 @@ namespace SeriesUpdater
         public Episode(string EpisodeString)
         {
             Regex episodeRegex = new Regex("S([0-9]+)E([0-9]+)");
-            GroupCollection regexGroups = episodeRegex.Match(EpisodeString).Groups;
+            GroupCollection regexGroups;
+            if (episodeRegex.IsMatch(EpisodeString))
+            {
+                regexGroups = episodeRegex.Match(EpisodeString).Groups;
+            }
+            else
+            {
+                episodeRegex = new Regex("S([0-9]+), Ep([0-9]+)");
+                regexGroups = episodeRegex.Match(EpisodeString).Groups;
+            }
 
             SeasonNumber = Convert.ToInt32(regexGroups[1].Value);
             EpisodeNumber = Convert.ToInt32(regexGroups[2].Value);

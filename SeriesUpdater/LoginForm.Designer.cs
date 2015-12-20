@@ -1,6 +1,6 @@
 ﻿namespace SeriesUpdater
 {
-    partial class Form4
+    partial class LoginForm
     {
         /// <summary>
         /// Required designer variable.
