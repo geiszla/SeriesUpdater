@@ -32,7 +32,7 @@ namespace SeriesUpdater.Internal
         public static string DataFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\SeriesUpdater";
         public static string ExecutableFileName = DataFolderPath + @"\SeriesUpdater.exe";
         public static string SettingsFileName = DataFolderPath + @"\settings.dat";
-        public static string SeriesDataFileName = DataFolderPath + @"\series.dat";
+        public static string SeriesDataFileName = DataFolderPath + @"\series.json";
 
         // Settings
         public static bool IsFirst = Context.Settings.IsFirst();

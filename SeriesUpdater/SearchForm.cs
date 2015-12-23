@@ -96,16 +96,13 @@ namespace SeriesUpdater
             {
                 MessageBox.Show("No series found. Please try using another keyword.",
                     "No series found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                selectButton.Enabled = false;
             }
 
             else
             {
                 resultTable.DataSource = seriesTable;
-
-                for (int i = 0; i < resultTable.Columns.Count; i++)
-                {
-                    resultTable.Columns[i].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-                }
+                selectButton.Enabled = true;
             }
 
             Cursor.Current = Cursors.Arrow;

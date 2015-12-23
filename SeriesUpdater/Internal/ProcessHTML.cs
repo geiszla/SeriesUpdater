@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -11,26 +10,29 @@ namespace SeriesUpdater.Internal
         public static Tuple<string, int> GetInnerHTMLByAttribute(string AttributeValue, string Attribute,
             string HTMLText, int SearchStartIndex = 0)
         {
-            string regexString = @"<[a-z0-9]+ " + Attribute + "=\"" + AttributeValue + @".*?>([^<]*)";
-            Regex innerHTMLRegex = new Regex(regexString);
+            // Get tag name
+            string regexString = @"<([a-z0-9]+) " + Attribute + "=\"" + AttributeValue;
+            Regex tagRegex = new Regex(regexString);
 
-            if (!innerHTMLRegex.IsMatch(HTMLText, SearchStartIndex)) return null;
+            Match tagMatch = tagRegex.Match(HTMLText, SearchStartIndex);
+            if (!tagMatch.Success) return null;
 
-            Match regexMatch = innerHTMLRegex.Match(HTMLText, SearchStartIndex);
-            string innerHTML = regexMatch.Groups[1].Value;
+            string tagName = tagMatch.Groups[1].Value;
+            int tagIndex = tagMatch.Index;
 
-            return new Tuple<string, int>(innerHTML, regexMatch.Index + innerHTML.Length);
+            // Get inner HTML by tag name
+            int startIndex = HTMLText.IndexOf('>', tagIndex) + 1;
+            int endIndex = HTMLText.IndexOf("</" + tagName, startIndex);
+
+            string innerHTML = HTMLText.Substring(startIndex, endIndex - startIndex);
+
+            return new Tuple<string, int>(innerHTML, endIndex + tagName.Length + 2);
         }
 
         public static Episode GetEpisodeByDateIndex(int DateIndex, string HTMLText)
         {
-            Stopwatch stopWatch = Stopwatch.StartNew();
-
-            Regex episodeRegex = new Regex("<div>(S[^<]*)");
-            string episodeString = episodeRegex.Match(HTMLText, DateIndex, HTMLText.Length).Groups[1].Value;
-
-            stopWatch.Stop();
-            long firstElapsed = stopWatch.Elapsed.Ticks;
+            Regex episodeRegex = new Regex("<div>(S[^<]*)", RegexOptions.RightToLeft);
+            string episodeString = episodeRegex.Match(HTMLText, DateIndex).Groups[1].Value;
             
             return new Episode(episodeString);
         }
@@ -50,10 +52,10 @@ namespace SeriesUpdater.Internal
             string url = "http://www.imdb.com/title/" + "tt" + ImdbId + "/episodes";
             string HTMLText = WebRequests.RequestPage(url);
 
-            return GetEpisodesFroHTML(ImdbId, HTMLText, IsAdd);
+            return GetEpisodesFromHTML(ImdbId, HTMLText, IsAdd);
         }
 
-        public static Episode GetEpisodesFroHTML(string imdbId, string HTMLText, bool isAdd,
+        public static Episode GetEpisodesFromHTML(string imdbId, string HTMLText, bool isAdd,
             DateTime currNextAirDate = new DateTime(), int currNextDateIndex = 0)
         {
             if (HTMLText == "") return null;
@@ -144,7 +146,7 @@ namespace SeriesUpdater.Internal
                 string previousSeasonNumber = Convert.ToString(Convert.ToInt32(seasonRegex.Match(seasonName).Groups[1].Value) - 1);
 
                 string url = "http://www.imdb.com/title/" + "tt" + imdbId + "/episodes" + previousSeasonNumber;
-                return GetEpisodesFroHTML(imdbId, WebRequests.RequestPage(url), isAdd, currNextAirDate, currNextDateIndex);
+                return GetEpisodesFromHTML(imdbId, WebRequests.RequestPage(url), isAdd, currNextAirDate, currNextDateIndex);
             }
 
             else

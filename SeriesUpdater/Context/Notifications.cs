@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SeriesUpdater.Internal;
+using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
@@ -8,13 +9,13 @@ namespace SeriesUpdater.Context
     {
         public static void ShowComingSeries(bool IsAdd)
         {
-            if (!Convert.ToBoolean(Settings.GlobalSettings[0][1])
-                || Internal.Variables.SeriesList.Count == 0) return;
+            if (Properties.Settings.Default.SendNotifications
+                || Variables.SeriesList.Count == 0) return;
 
             List<Series> todaySeries = new List<Series>();
             List<Series> tomorrowSeries = new List<Series>();
 
-            foreach (Series currSeries in Internal.Variables.SeriesList)
+            foreach (Series currSeries in Variables.SeriesList)
             {
                 if (currSeries.DateKnown < 3 || DateTime.Now.Year < currSeries.NextEpisodeAirDate.Year) continue;
 
@@ -80,7 +81,7 @@ namespace SeriesUpdater.Context
 
         public static void ShowNotification(string Title, string Text, int Timeout)
         {
-            NotifyIcon notifyIcon = Internal.Variables.NotifyIcon;
+            NotifyIcon notifyIcon = Variables.NotifyIcon;
 
             notifyIcon.BalloonTipTitle = Title;
             notifyIcon.BalloonTipText = Text;

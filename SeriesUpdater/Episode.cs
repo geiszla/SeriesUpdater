@@ -12,19 +12,16 @@ namespace SeriesUpdater
         public Episode(string EpisodeString)
         {
             Regex episodeRegex = new Regex("S([0-9]+)E([0-9]+)");
-            GroupCollection regexGroups;
-            if (episodeRegex.IsMatch(EpisodeString))
-            {
-                regexGroups = episodeRegex.Match(EpisodeString).Groups;
-            }
-            else
+            Match regexMatch = episodeRegex.Match(EpisodeString);
+            
+            if (!regexMatch.Success)
             {
                 episodeRegex = new Regex("S([0-9]+), Ep([0-9]+)");
-                regexGroups = episodeRegex.Match(EpisodeString).Groups;
+                regexMatch = episodeRegex.Match(EpisodeString);
             }
-
-            SeasonNumber = Convert.ToInt32(regexGroups[1].Value);
-            EpisodeNumber = Convert.ToInt32(regexGroups[2].Value);
+            
+            SeasonNumber = Convert.ToInt32(regexMatch.Groups[1].Value);
+            EpisodeNumber = Convert.ToInt32(regexMatch.Groups[2].Value);
         }
 
         public Episode(int SeasonNumber, int EpisodeNumber)
@@ -38,10 +35,16 @@ namespace SeriesUpdater
             return "S" + SeasonNumber + "E" + EpisodeNumber;
         }
 
-        public static bool IsValidEpisodeString(string String)
+        public static bool IsValidEpisodeString(string EpisodeString)
         {
             Regex episodeRegex = new Regex("S([0-9]+)E([0-9]+)");
-            return episodeRegex.IsMatch(String);
+            if (!episodeRegex.IsMatch(EpisodeString))
+            {
+                episodeRegex = new Regex("S([0-9]+), Ep([0-9]+)");
+                return episodeRegex.IsMatch(EpisodeString);
+            }
+
+            return true;
         }
     }
 }

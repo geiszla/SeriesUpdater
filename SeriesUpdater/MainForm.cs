@@ -1,4 +1,6 @@
-﻿using System;
+﻿using SeriesUpdater.Internal;
+using SeriesUpdater.Properties;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -25,7 +27,6 @@ namespace SeriesUpdater
         #region Form Events
         private void Form1_Load(object sender, EventArgs e)
         {
-            Context.IO.ReadSettings();
             Context.IO.ReadSeries();
 
             if (Internal.Variables.IsFirst)
@@ -59,7 +60,7 @@ namespace SeriesUpdater
 
         private void Form1_Deactivate(object sender, EventArgs e)
         {
-            if (!Internal.Variables.IsAddFormOpened)
+            if (!Variables.IsAddFormOpened)
             {
                 Internal.Variables.LastDeactivateTick = Environment.TickCount;
                 Hide();
@@ -68,7 +69,6 @@ namespace SeriesUpdater
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Context.IO.WriteSettings();
             notifyIcon.Visible = false;
         }
 
@@ -179,7 +179,8 @@ namespace SeriesUpdater
 
         private void notificationContextMenuItem_Click(object sender, EventArgs e)
         {
-            Context.Settings.ChangeSettings(0, sendNotificationsToolStripMenuItem.Checked.ToString());
+            Properties.Settings.Default.SendNotifications = sendNotificationsToolStripMenuItem.Checked;
+            Properties.Settings.Default.Save();
         }
 
         private void customLanguageToolStripMenuItem_Click(object sender, EventArgs e)
@@ -344,23 +345,12 @@ namespace SeriesUpdater
 
         void applySettings()
         {
-            foreach (string[] option in Context.Settings.GlobalSettings)
-            {
-                ToolStripMenuItem currOption = (ToolStripMenuItem)notifyIconContextMenu.Items.Find(option[0] + "ToolStripMenuItem", true)[0];
+            Settings applicationSettings = Settings.Default;
+            sendNotificationsToolStripMenuItem.Checked = applicationSettings.SendNotifications;
 
-                if (option[0] == "RunOnStartup")
-                {
-                    if (Convert.ToBoolean(option[1]) && !Context.Settings.IsStartupItem())
-                    {
-                        Context.Settings.SetAutorun(true);
-                    }
-
-                    else if (!Convert.ToBoolean(option[1]) && Context.Settings.IsStartupItem())
-                    {
-                        Context.Settings.SetAutorun();
-                    }
-                }
-            }
+            bool isToBeAutorun = applicationSettings.RunOnStartup;
+            bool isCurrentlyAutorun = Context.Settings.IsStartupItem();
+            if (isToBeAutorun && !isCurrentlyAutorun) Context.Settings.SetAutorun(true);
         }
 
         void editLastViewedLabel(object sender)
@@ -397,6 +387,14 @@ namespace SeriesUpdater
 
                 int id = Convert.ToInt32(currLastViewedTextBox.Name.Split('_')[1]);
                 string text = currLastViewedTextBox.Text;
+
+                if (!Episode.IsValidEpisodeString(text))
+                {
+                    Variables.IsAddFormOpened = true;
+                    MessageBox.Show("The format of the given episode number is incorrect. Please give a correct one.", "Invalid episode number",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
 
                 seriesTable.Controls.Remove(currLastViewedTextBox);
 

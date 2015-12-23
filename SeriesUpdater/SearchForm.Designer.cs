@@ -61,19 +61,20 @@
             this.resultTable.AllowUserToAddRows = false;
             this.resultTable.AllowUserToDeleteRows = false;
             this.resultTable.AllowUserToOrderColumns = true;
-            this.resultTable.AllowUserToResizeColumns = false;
             this.resultTable.AllowUserToResizeRows = false;
             this.resultTable.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.resultTable.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
+            this.resultTable.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.resultTable.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.resultTable.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.resultTable.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             this.resultTable.Location = new System.Drawing.Point(12, 39);
             this.resultTable.MultiSelect = false;
             this.resultTable.Name = "resultTable";
             this.resultTable.ReadOnly = true;
-            this.resultTable.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+            this.resultTable.RowHeadersVisible = false;
+            this.resultTable.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.AutoSizeToDisplayedHeaders;
             this.resultTable.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.resultTable.Size = new System.Drawing.Size(486, 218);
             this.resultTable.TabIndex = 2;
@@ -90,6 +91,7 @@
             // 
             // selectButton
             // 
+            this.selectButton.Enabled = false;
             this.selectButton.Location = new System.Drawing.Point(342, 263);
             this.selectButton.Name = "selectButton";
             this.selectButton.Size = new System.Drawing.Size(75, 23);
@@ -98,7 +100,7 @@
             this.selectButton.UseVisualStyleBackColor = true;
             this.selectButton.Click += new System.EventHandler(this.selectButton_Click);
             // 
-            // Form3
+            // SearchForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -111,7 +113,7 @@
             this.Controls.Add(this.searchButton);
             this.Controls.Add(this.searchBox);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.Name = "Form3";
+            this.Name = "SearchForm";
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Series Search";

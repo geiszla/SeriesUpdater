@@ -9,10 +9,6 @@ namespace SeriesUpdater.Context
     {
         const string startupKeyPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
 
-        public static List<string[]> GlobalSettings = new List<string[]> {
-            new string[] { "SendNotifications", "True" },
-            new string[] { "RunOnStartup", "False" } };
-
         public static bool SetAutorun(bool IsAdd = false)
         {
             RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(startupKeyPath, true);
@@ -23,7 +19,7 @@ namespace SeriesUpdater.Context
                     MessageBox.Show("Do you want to save a copy of the executable? In this way start with Windows will be possible even if this file will be deleted.",
                     "Start with Windows", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
-                if (!File.Exists(Internal.Variables.ExecutableFileName) && copyExecutableDialogResult == DialogResult.Yes)
+                if (copyExecutableDialogResult == DialogResult.Yes && !File.Exists(Internal.Variables.ExecutableFileName))
                 {
                     File.Copy(Application.ExecutablePath, Internal.Variables.ExecutableFileName);
                     registryKey.SetValue("SeriesUpdater", Internal.Variables.ExecutableFileName);
@@ -54,11 +50,7 @@ namespace SeriesUpdater.Context
         {
             return !Directory.Exists(Internal.Variables.DataFolderPath);
         }
-
-        public static void ChangeSettings(int Number, string Value)
-        {
-            GlobalSettings[Number][1] = Value;
-            IO.WriteSettings(GlobalSettings[Number][0], Value);
-        }
     }
+
+
 }

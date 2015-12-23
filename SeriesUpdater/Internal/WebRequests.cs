@@ -57,10 +57,10 @@ namespace SeriesUpdater.Internal
             string innerHTML = "";
             for (int i = 0; i < 10; i++)
             {
-                if ((innerHTML = ProcessHTML.GetInnerHTMLByAttribute("result_text", "class", HTMLText, startIndex).Item1) == null)
-                {
-                    break;
-                }
+                Tuple<string, int> innerHTMLTuple = ProcessHTML.GetInnerHTMLByAttribute("result_text", "class", HTMLText, startIndex);
+                if (innerHTMLTuple == null) break;
+                innerHTML = innerHTMLTuple.Item1;
+                startIndex = innerHTMLTuple.Item2;
 
                 ResultSeries currResult = new ResultSeries();
 
@@ -88,8 +88,6 @@ namespace SeriesUpdater.Internal
 
                     Variables.ResultSeriesList.Add(currResult);
                 }
-
-                startIndex = Convert.ToInt32(ProcessHTML.GetInnerHTMLByAttribute("result_text", "class", HTMLText, startIndex).Item2);
             }
         }
 

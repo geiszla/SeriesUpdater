@@ -100,7 +100,7 @@ namespace SeriesUpdater
                 Cursor.Current = Cursors.WaitCursor;
                 string url = "http://www.imdb.com/title/" + "tt" + Convert.ToInt32(imdbIdTextBox.Text) + "/episodes";
                 string HTMLText = WebRequests.RequestPage(url);
-                Episode latestEp = ProcessHTML.GetEpisodesFroHTML(imdbIdTextBox.Text, HTMLText, false);
+                Episode latestEp = ProcessHTML.GetEpisodesFromHTML(imdbIdTextBox.Text, HTMLText, false);
 
                 if (HTMLText != "")
                 {
@@ -168,7 +168,7 @@ namespace SeriesUpdater
         {
             string imdbId = imdbIdTextBox.Text;
             bool isFound = false;
-            foreach (Series currSeries in Internal.Variables.SeriesList)
+            foreach (Series currSeries in Variables.SeriesList)
             {
                 if (imdbId == currSeries.ImdbId)
                 {
@@ -180,18 +180,18 @@ namespace SeriesUpdater
             {
                 Cursor.Current = Cursors.WaitCursor;
 
-                Series newSeries = new Series(Internal.Variables.SeriesList.Count, nameTextBox.Text, imdbId,
+                Series newSeries = new Series(Variables.SeriesList.Count, nameTextBox.Text, imdbId,
                     new Episode(lastViewedEpisodeTextBox.Text), new Episode(), new Episode(), new DateTime(), 3, 0);
-                Internal.Variables.SeriesList.Add(newSeries);
+                Variables.SeriesList.Add(newSeries);
 
-                if (Internal.Variables.SelectedSeries.ImdbId == newSeries.ImdbId)
+                if (Variables.SelectedSeries.ImdbId == newSeries.ImdbId)
                 {
-                    newSeries.LastEpisode = Internal.Variables.SelectedSeries.LastEpisode;
-                    newSeries.NextEpisode = Internal.Variables.SelectedSeries.NextEpisode;
-                    newSeries.NextEpisodeAirDate = Internal.Variables.SelectedSeries.NextEpisodeAirDate;
+                    newSeries.LastEpisode = Variables.SelectedSeries.LastEpisode;
+                    newSeries.NextEpisode = Variables.SelectedSeries.NextEpisode;
+                    newSeries.NextEpisodeAirDate = Variables.SelectedSeries.NextEpisodeAirDate;
                 }
 
-                if (Internal.Variables.SeriesList[Internal.Variables.SeriesList.Count - 1].LastEpisode.SeasonNumber == 0)
+                if (Variables.SeriesList[Variables.SeriesList.Count - 1].LastEpisode.SeasonNumber == 0)
                 {
                     return;
                 }
@@ -199,7 +199,7 @@ namespace SeriesUpdater
                 Context.IO.WriteSeries(newSeries.Name, newSeries.ImdbId);
 
                 Cursor.Current = Cursors.Arrow;
-                Internal.Variables.IsAddedSeries = true;
+                Variables.IsAddedSeries = true;
 
                 Close();
             }
