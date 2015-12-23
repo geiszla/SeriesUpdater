@@ -1,9 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using HtmlAgilityPack;
+using Newtonsoft.Json.Linq;
+using SeriesUpdater.Context;
 using System;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
 
 namespace SeriesUpdater.Internal
 {
@@ -18,7 +20,7 @@ namespace SeriesUpdater.Internal
             {
                 string responseHTML;
                 using (WebResponse webResponse = webRequest.GetResponse())
-                using (StreamReader responseReader = new StreamReader(webResponse.GetResponseStream(), System.Text.Encoding.UTF8))
+                using (StreamReader responseReader = new StreamReader(webResponse.GetResponseStream(), Encoding.UTF8))
                 {
                     responseHTML = responseReader.ReadToEnd();
                 }
@@ -28,8 +30,8 @@ namespace SeriesUpdater.Internal
 
             catch
             {
-                MessageBox.Show("Couldn't get series information. IMDB id may be invalid or there is no connection to the server.",
-                    Variables.ApplicationName + ": Couldn't get series information", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Notifications.ShowError("Couldn't get series information. IMDB id may be invalid or there is no connection to the server.",
+                    "Couldn't get series information");
                 return "";
             }
         }
@@ -50,47 +52,49 @@ namespace SeriesUpdater.Internal
 
         public static void SearchForSeries(string Query)
         {
-            string url = "http://www.imdb.com/find?" + "q=" + Query + "&s=tt&ttype=tv&ref_=fn_tv";
-            string HTMLText = RequestPage(url);
+            HtmlWeb htmlWeb = new HtmlWeb();
+            HtmlDocument htmlDocument = htmlWeb.Load("http://www.imdb.com/find?" + "q=" + Query + "&s=tt&ttype=tv");
 
-            int startIndex = 0;
-            string innerHTML = "";
+            HtmlNodeCollection resultNodes = htmlDocument.DocumentNode
+                .SelectNodes("//*[contains(concat(' ', normalize-space(@class), ' '), ' result_text ')]");
+
+            int nodeNumber = 0;
             for (int i = 0; i < 10; i++)
             {
-                Tuple<string, int> innerHTMLTuple = ProcessHTML.GetInnerHTMLByAttribute("result_text", "class", HTMLText, startIndex);
-                if (innerHTMLTuple == null) break;
-                innerHTML = innerHTMLTuple.Item1;
-                startIndex = innerHTMLTuple.Item2;
-
                 ResultSeries currResult = new ResultSeries();
+                string innerHTML = resultNodes[nodeNumber].InnerHtml;
 
-                Match typeMatch = Regex.Match(innerHTML, @"\(([a-z| |-]*)\)", RegexOptions.IgnoreCase);
-                currResult.type = typeMatch.Groups[1].Value;
+                Regex propertyRegex = new Regex("/tt([0-9]+).*>(.*)<.*\\(([0-9]+)\\).*\\((.*)\\)(?:.*>\"(.*)\"<)?");
+                GroupCollection propertyGroups = propertyRegex.Match(innerHTML).Groups;
 
-                if (currResult.type == "TV Movie" || currResult.type == "TV Short")
+                if (propertyGroups[4].Value == "TV Movie" || propertyGroups[4].Value == "TV Short")
                 {
                     i--;
                 }
 
                 else
                 {
-                    Match idMatch = Regex.Match(innerHTML, @"/title/tt(.*)\/\?", RegexOptions.IgnoreCase);
-                    currResult.id = idMatch.Groups[1].Value;
-
-                    Match nameMatch = Regex.Match(innerHTML, "<(a href=)+.*>(.*)</a", RegexOptions.IgnoreCase);
-                    currResult.name = nameMatch.Groups[2].Value;
-
-                    Match akaMatch = Regex.Match(innerHTML, "<i>\"(.*)\"</i>", RegexOptions.IgnoreCase);
-                    currResult.aka = akaMatch.Groups[1].Value;
-
-                    Match yearMatch = Regex.Match(innerHTML, @"> \(([0-9]*)\)", RegexOptions.IgnoreCase);
-                    currResult.startYear = yearMatch.Groups[1].Value;
+                    currResult.id = propertyGroups[1].Value;
+                    currResult.name = propertyGroups[2].Value;
+                    currResult.startYear = propertyGroups[3].Value;
+                    currResult.type = propertyGroups[4].Value;
+                    currResult.aka = propertyGroups.Count > 5 ? propertyGroups[5].Value : "";
 
                     Variables.ResultSeriesList.Add(currResult);
                 }
+
+                if (nodeNumber == resultNodes.Count - 1)
+                {
+                    break;
+                }
+
+                nodeNumber++;
             }
+
+            return;
         }
 
+        // Get time
         public static string GetAirTimeByName(string Name)
         {
             string content = RequestPage("http://services.tvrage.com/feeds/fullschedule.php?country=US");

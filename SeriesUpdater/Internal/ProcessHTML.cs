@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SeriesUpdater.Context;
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -64,8 +65,8 @@ namespace SeriesUpdater.Internal
             string seasonName = GetInnerHTMLByAttribute("episode_top", "id", HTMLText).Item1;
             if (seasonName == null)
             {
-                MessageBox.Show("This series doesn't have any episodes. Please choose another one.",
-                    "Invalid series", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Notifications.ShowError("This series doesn't have any episodes. Please choose another one.",
+                    "Invalid series");
                 return null;
             }
 

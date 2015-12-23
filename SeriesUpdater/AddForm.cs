@@ -1,4 +1,5 @@
-﻿using SeriesUpdater.Internal;
+﻿using SeriesUpdater.Context;
+using SeriesUpdater.Internal;
 using System;
 using System.Windows.Forms;
 
@@ -28,17 +29,19 @@ namespace SeriesUpdater
         {
             if (nameTextBox.Text == "")
             {
-                MessageBox.Show("Please give the series a name.", "No name given", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Notifications.ShowError("Please give the series a name.", "No name given");
             }
 
             else if (imdbIdTextBox.Text == "")
             {
-                MessageBox.Show("Please give a valid IMDB ID of the series or search by name from the field above.", "No IMDB ID given", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Notifications.ShowError("Please give a valid IMDB ID of the series or search by name from the field above.",
+                    "No IMDB ID given");
             }
 
             else if (lastViewedEpisodeTextBox.Text == "")
             {
-                MessageBox.Show("Please give the last episode you watched from this series.", "No last viewed episode given", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Notifications.ShowError("Please give the last episode you watched from this series.",
+                    "No last viewed episode given");
             }
 
             else
@@ -50,13 +53,15 @@ namespace SeriesUpdater
 
                 catch
                 {
-                    MessageBox.Show("The IMDB ID can only contain numbers. Please check the given value.", "Invalid IMDB ID", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Notifications.ShowError("The IMDB ID can only contain numbers. Please check the given value.",
+                        "Invalid IMDB ID");
                     return;
                 }
 
                 if (!Episode.IsValidEpisodeString(lastViewedEpisodeTextBox.Text))
                 {
-                    MessageBox.Show("Format of the given last viewed episode is invalid. Please give a valid value, eg. S05E13", "Invalid last viewed episode", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Notifications.ShowError("Format of the given last viewed episode is invalid. Please give a valid value, eg. S05E13",
+                        "Invalid last viewed episode");
                     return;
                 }
 
@@ -92,8 +97,8 @@ namespace SeriesUpdater
 
                 catch
                 {
-                    MessageBox.Show("The IMDB ID can only contain numbers. Please check the given value.",
-                        "Invalid IMDB ID", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Notifications.ShowError("The IMDB ID can only contain numbers. Please check the given value.",
+                        "Invalid IMDB ID");
                     return;
                 }
 
@@ -111,8 +116,7 @@ namespace SeriesUpdater
 
             else
             {
-                MessageBox.Show("Please give a valid IMDB ID of the desired series.",
-                    "Empty IMDB ID", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Notifications.ShowError("Please give a valid IMDB ID of the desired series.", "Empty IMDB ID");
             }
         }
 
@@ -206,8 +210,8 @@ namespace SeriesUpdater
 
             else
             {
-                MessageBox.Show("This series is already in the list. Please select another one.",
-                    "Series already in list", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Notifications.ShowError("This series is already in the list. Please select another one.",
+                    "Series already in list");
             }
         }
 

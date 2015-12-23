@@ -8,16 +8,18 @@ namespace SeriesUpdater.Internal
         public static DataTable CreateTable()
         {
             DataTable seriesTable = new DataTable();
+            seriesTable.Columns.Add("#", typeof(int));
             seriesTable.Columns.Add("IMDB id", typeof(string));
             seriesTable.Columns.Add("Name", typeof(string));
             seriesTable.Columns.Add("AKA", typeof(string));
             seriesTable.Columns.Add("Year", typeof(string));
             seriesTable.Columns.Add("Type", typeof(string));
 
-            foreach (ResultSeries currSeries in Variables.ResultSeriesList)
+            for (int i = 0; i < Variables.ResultSeriesList.Count; i++)
             {
-                List<ResultSeries> resultSeriesList = Variables.ResultSeriesList;
-                seriesTable.Rows.Add(currSeries.id, currSeries.name, currSeries.aka,
+                ResultSeries currSeries = Variables.ResultSeriesList[i];
+
+                seriesTable.Rows.Add(i + 1, currSeries.id, currSeries.name, currSeries.aka,
                     currSeries.startYear, currSeries.type);
             }
 

@@ -1,4 +1,5 @@
-﻿using SeriesUpdater.Internal;
+﻿using SeriesUpdater.Context;
+using SeriesUpdater.Internal;
 using SeriesUpdater.Properties;
 using System;
 using System.Diagnostics;
@@ -17,8 +18,8 @@ namespace SeriesUpdater
             checkForOtherInstance();
             InitializeComponent();
 
-            Internal.Variables.NotifyIcon = this.notifyIcon;
-            Internal.Variables.MainForm = this;
+            Variables.NotifyIcon = this.notifyIcon;
+            Variables.MainForm = this;
 
             RunOnStartupToolStripMenuItem.Checked = Context.Settings.IsStartupItem();
             WireAllControls(this);
@@ -27,19 +28,20 @@ namespace SeriesUpdater
         #region Form Events
         private void Form1_Load(object sender, EventArgs e)
         {
-            Context.IO.ReadSeries();
+            IO.ReadSeries();
 
-            if (Internal.Variables.IsFirst)
+            if (Variables.IsFirst)
             {
-                if (!Context.Settings.IsStartupItem() && MessageBox.Show("Do you want to start Series Updater with Windows?",
-                    "Start with Windows", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (!Context.Settings.IsStartupItem()
+                    && Notifications.ShowQuestion("Do you want to start Series Updater with Windows?",
+                        "Start with Windows") == DialogResult.Yes)
                 {
                     RunOnStartupToolStripMenuItem.Checked = Context.Settings.SetAutorun(true);
                 }
 
-                if (!Directory.Exists(Internal.Variables.DataFolderPath))
+                if (!Directory.Exists(Variables.DataFolderPath))
                 {
-                    Directory.CreateDirectory(Internal.Variables.DataFolderPath);
+                    Directory.CreateDirectory(Variables.DataFolderPath);
                 }
             }
 
@@ -92,8 +94,8 @@ namespace SeriesUpdater
         private void deleteImage_Click(object sender, EventArgs e)
         {
             Deactivate -= Form1_Deactivate;
-            if (MessageBox.Show("Are you sure you want to remove this series from the list?", "Remove series",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (Notifications.ShowQuestion("Are you sure you want to remove this series from the list?",
+                "Remove series") == DialogResult.Yes)
             {
                 PictureBox deleteImage = (PictureBox)sender;
                 int id = Convert.ToInt32(deleteImage.Name.Split('_')[1]);
@@ -187,7 +189,7 @@ namespace SeriesUpdater
         {
             string message = "To change the language of the display title of series, first you have to set it up in your IMDB account (https://secure.imdb.com/register-imdb/siteprefs), then you can log in here using your Google credentials. Do you want to log in now?";
 
-            if (MessageBox.Show(message, "Change IMDB language", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+            if (Notifications.ShowQuestion(message, "Change IMDB language") == DialogResult.Yes)
             {
                 LoginForm loginForm = new LoginForm();
                 loginForm.ShowDialog();
@@ -231,13 +233,13 @@ namespace SeriesUpdater
             if (Internal.Variables.SeriesList.Count > 0)
             {
                 string text = "Series Updater is updating information about your series. Please wait until the process finishes.";
-                Context.Notifications.ShowNotification("Updating...", text, 3000);
+                Context.Notifications.ShowNotification(text, "Updating...", 3000);
             }
 
             else
             {
                 string text = "Click on this icon to open Series Updater, add and later delete series.";
-                Context.Notifications.ShowNotification("Series Updater", text, 3000);
+                Context.Notifications.ShowNotification(text, "Series Updater", 3000);
             }
 
             if (Internal.Variables.SeriesList.Count > 0)
@@ -253,7 +255,7 @@ namespace SeriesUpdater
             if (Internal.Variables.SeriesList.Count > 0)
             {
                 string text = "Series information is downloaded successfully. You can open the program now.";
-                Context.Notifications.ShowNotification("Update successful", text, 3000);
+                Context.Notifications.ShowNotification(text, "Update successful", 3000);
             }
 
             Context.Notifications.ShowComingSeries(false);
@@ -345,7 +347,7 @@ namespace SeriesUpdater
 
         void applySettings()
         {
-            Settings applicationSettings = Settings.Default;
+            Properties.Settings applicationSettings = Properties.Settings.Default;
             sendNotificationsToolStripMenuItem.Checked = applicationSettings.SendNotifications;
 
             bool isToBeAutorun = applicationSettings.RunOnStartup;
@@ -391,8 +393,8 @@ namespace SeriesUpdater
                 if (!Episode.IsValidEpisodeString(text))
                 {
                     Variables.IsAddFormOpened = true;
-                    MessageBox.Show("The format of the given episode number is incorrect. Please give a correct one.", "Invalid episode number",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Notifications.ShowError("The format of the given episode number is incorrect. Please give a correct one.",
+                    "Invalid episode number");
                     return;
                 }
 

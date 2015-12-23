@@ -1,5 +1,5 @@
 ﻿using Microsoft.Win32;
-using System.Collections.Generic;
+using SeriesUpdater.Internal;
 using System.IO;
 using System.Windows.Forms;
 
@@ -15,19 +15,19 @@ namespace SeriesUpdater.Context
             
             if (IsAdd || (!IsAdd && !IsStartupItem()))
             {
-                DialogResult copyExecutableDialogResult =
-                    MessageBox.Show("Do you want to save a copy of the executable? In this way start with Windows will be possible even if this file will be deleted.",
-                    "Start with Windows", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                DialogResult copyExecutableDialogResult = Notifications.ShowQuestion(
+                    "Do you want to save a copy of the program? In this way start with Windows will be possible even if this file will be deleted.",
+                    "Start with Windows");
 
-                if (copyExecutableDialogResult == DialogResult.Yes && !File.Exists(Internal.Variables.ExecutableFileName))
+                if (copyExecutableDialogResult == DialogResult.Yes && !File.Exists(Variables.ExecutableFileName))
                 {
-                    File.Copy(Application.ExecutablePath, Internal.Variables.ExecutableFileName);
-                    registryKey.SetValue("SeriesUpdater", Internal.Variables.ExecutableFileName);
+                    File.Copy(Application.ExecutablePath, Variables.ExecutableFileName);
+                    registryKey.SetValue(Variables.AppName, Variables.ExecutableFileName);
                 }
 
                 else
                 {
-                    registryKey.SetValue("SeriesUpdater", Application.ExecutablePath);
+                    registryKey.SetValue(Variables.AppName, Application.ExecutablePath);
                 }
 
                 return true;
@@ -35,7 +35,7 @@ namespace SeriesUpdater.Context
 
             else
             {
-                registryKey.DeleteValue("SeriesUpdater", false);
+                registryKey.DeleteValue(Variables.AppName, false);
                 return false;
             }
         }
@@ -43,12 +43,12 @@ namespace SeriesUpdater.Context
         public static bool IsStartupItem()
         {
             RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(startupKeyPath, true);
-            return registryKey.GetValue("SeriesUpdater") != null;
+            return registryKey.GetValue(Variables.AppName) != null;
         }
 
         public static bool IsFirst()
         {
-            return !Directory.Exists(Internal.Variables.DataFolderPath);
+            return !Directory.Exists(Variables.DataFolderPath);
         }
     }
 

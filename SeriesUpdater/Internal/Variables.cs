@@ -7,7 +7,8 @@ namespace SeriesUpdater.Internal
     class Variables
     {
         // Global
-        public const string ApplicationName = "Series Updater";
+        public const string AppName = "SeriesUpdater";
+        public const string DisplayName = "Series Updater";        
         public static List<Series> SeriesList = new List<Series>();
         
         // MainForm

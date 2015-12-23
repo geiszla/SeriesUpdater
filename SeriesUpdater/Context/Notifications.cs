@@ -7,6 +7,18 @@ namespace SeriesUpdater.Context
 {
     class Notifications
     {
+        public static void ShowError(string Text, string Caption)
+        {
+            MessageBox.Show(Text, Variables.DisplayName + " Error: " + Caption,
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        public static DialogResult ShowQuestion(string Text, string Caption)
+        {
+            return MessageBox.Show(Text, Variables.DisplayName + ": " + Caption,
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        }
+
         public static void ShowComingSeries(bool IsAdd)
         {
             if (Properties.Settings.Default.SendNotifications
@@ -76,14 +88,14 @@ namespace SeriesUpdater.Context
                 notificationText += " are coming out " + DayString + ".";
             }
 
-            ShowNotification(notificationTitle, notificationText, 30000);
+            ShowNotification(notificationText, notificationTitle, 30000);
         }
 
-        public static void ShowNotification(string Title, string Text, int Timeout)
+        public static void ShowNotification(string Text, string Caption, int Timeout)
         {
             NotifyIcon notifyIcon = Variables.NotifyIcon;
 
-            notifyIcon.BalloonTipTitle = Title;
+            notifyIcon.BalloonTipTitle = Caption;
             notifyIcon.BalloonTipText = Text;
             notifyIcon.ShowBalloonTip(Timeout);
         }

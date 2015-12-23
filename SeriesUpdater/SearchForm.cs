@@ -1,4 +1,6 @@
-﻿using System;
+﻿using SeriesUpdater.Context;
+using SeriesUpdater.Internal;
+using System;
 using System.Data;
 using System.Windows.Forms;
 
@@ -16,7 +18,7 @@ namespace SeriesUpdater
         {
             Visible = false;
 
-            if (Internal.Variables.SearchQuery != "")
+            if (Variables.SearchQuery != "")
             {
                 searchBox.Text = Internal.Variables.SearchQuery;
                 startSearch();
@@ -29,7 +31,8 @@ namespace SeriesUpdater
         {
             if (searchBox.Text == "")
             {
-                MessageBox.Show("Please give a keyword to search for.", "No search keyword given", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Notifications.ShowError("Please give a keyword to search for.",
+                    "No search keyword given");
             }
 
             else
@@ -44,14 +47,14 @@ namespace SeriesUpdater
             string imdbId = resultTable.SelectedRows[0].Cells[0].Value.ToString();
             string name = resultTable.SelectedRows[0].Cells[1].Value.ToString();
 
-            Internal.Variables.SelectedSeries = new Series(name, imdbId, new Episode(), new Episode(), new DateTime(), 3);
+            Variables.SelectedSeries = new Series(name, imdbId, new Episode(), new Episode(), new DateTime(), 3);
 
             string id = resultTable.SelectedRows[0].Cells[0].Value.ToString();            
-            Internal.Variables.SelectedSeries.LastEpisode = Internal.ProcessHTML.GetLatestAndNextEpisode(id, true);
+            Variables.SelectedSeries.LastEpisode = Internal.ProcessHTML.GetLatestAndNextEpisode(id, true);
 
-            if (Internal.Variables.SelectedSeries.LastEpisode.SeasonNumber != 0)
+            if (Variables.SelectedSeries.LastEpisode.SeasonNumber != 0)
             {
-                Internal.Variables.IsSelectedSeries = true;
+                Variables.IsSelectedSeries = true;
                 Close();
             }
         }
@@ -86,22 +89,30 @@ namespace SeriesUpdater
         #region Functions
         void startSearch()
         {
-            Internal.Variables.ResultSeriesList.Clear();
+            Variables.ResultSeriesList.Clear();
             Cursor.Current = Cursors.WaitCursor;
 
-            Internal.WebRequests.SearchForSeries(searchBox.Text);
-            DataTable seriesTable = Internal.ProcessData.CreateTable();
+            WebRequests.SearchForSeries(searchBox.Text);
+            DataTable seriesTable = ProcessData.CreateTable();
 
             if (seriesTable.Rows.Count == 0)
             {
-                MessageBox.Show("No series found. Please try using another keyword.",
-                    "No series found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Notifications.ShowError("No series found. Please try using another keyword.",
+                    "No series found");
                 selectButton.Enabled = false;
             }
 
             else
             {
                 resultTable.DataSource = seriesTable;
+
+                resultTable.Columns[0].Width = 25;
+                resultTable.Columns[1].Width = 70;
+                resultTable.Columns[2].Width = 145;
+                resultTable.Columns[3].Width = 105;
+                resultTable.Columns[4].Width = 45;
+                resultTable.Columns[4].Width = 45;
+
                 selectButton.Enabled = true;
             }
 
