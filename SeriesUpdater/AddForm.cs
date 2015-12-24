@@ -103,13 +103,13 @@ namespace SeriesUpdater
                 }
 
                 Cursor.Current = Cursors.WaitCursor;
-                string url = "http://www.imdb.com/title/" + "tt" + Convert.ToInt32(imdbIdTextBox.Text) + "/episodes";
-                string HTMLText = WebRequests.RequestPage(url);
-                Episode latestEp = ProcessHTML.GetEpisodesFromHTML(imdbIdTextBox.Text, HTMLText, false);
+                string url = "http://www.imdb.com/title/" + "tt" + imdbIdTextBox.Text + "/episodes";
+                string HtmlText = WebRequests.RequestPage(url);
+                Episode latestEp = ProcessHtml.GetEpisodesFromHtml(imdbIdTextBox.Text, HtmlText, false)[0];
 
-                if (HTMLText != "")
+                if (HtmlText != "")
                 {
-                    nameTextBox.Text = ProcessHTML.GetNameFromHTML(HTMLText);
+                    nameTextBox.Text = ProcessHtml.GetNameFromHtml(HtmlText);
                     lastViewedEpisodeTextBox.Text = latestEp.ToString();
                 }
             }
@@ -192,7 +192,7 @@ namespace SeriesUpdater
                 {
                     newSeries.LastEpisode = Variables.SelectedSeries.LastEpisode;
                     newSeries.NextEpisode = Variables.SelectedSeries.NextEpisode;
-                    newSeries.NextEpisodeAirDate = Variables.SelectedSeries.NextEpisodeAirDate;
+                    newSeries.NextEpisode.AirDate = Variables.SelectedSeries.NextEpisode.AirDate;
                 }
 
                 if (Variables.SeriesList[Variables.SeriesList.Count - 1].LastEpisode.SeasonNumber == 0)

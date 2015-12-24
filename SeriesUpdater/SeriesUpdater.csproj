@@ -87,7 +87,7 @@
     <Compile Include="LoginForm.Designer.cs">
       <DependentUpon>LoginForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Internal\ProcessHTML.cs" />
+    <Compile Include="Internal\ProcessHtml.cs" />
     <Compile Include="Internal\ProcessData.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

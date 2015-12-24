@@ -29,9 +29,9 @@ namespace SeriesUpdater.Context
 
             foreach (Series currSeries in Variables.SeriesList)
             {
-                if (currSeries.DateKnown < 3 || DateTime.Now.Year < currSeries.NextEpisodeAirDate.Year) continue;
+                if (currSeries.DateKnown < 3 || DateTime.Now.Year < currSeries.NextEpisode.AirDate.Year) continue;
 
-                int remainingDays = currSeries.NextEpisodeAirDate.DayOfYear - DateTime.Now.DayOfYear;
+                int remainingDays = currSeries.NextEpisode.AirDate.DayOfYear - DateTime.Now.DayOfYear;
                 if (currSeries.NotificationSent < 2 && remainingDays == 0)
                 {
                     todaySeries.Add(currSeries);
@@ -59,7 +59,7 @@ namespace SeriesUpdater.Context
 
             if (UpcomingSeries.Count == 1)
             {
-                string showTime = UpcomingSeries[0].NextEpisodeAirDate.ToString("HH:mm");
+                string showTime = UpcomingSeries[0].NextEpisode.AirDate.ToString("HH:mm");
                 notificationText = "A new episode of \"" + UpcomingSeries[0].Name + "\" is coming out "
                     + DayString + (showTime != "00:00" ? " at " + showTime : null) + ".";
             }
@@ -72,7 +72,7 @@ namespace SeriesUpdater.Context
                 for (int i = 0; i < UpcomingSeries.Count; i++)
                 {
                     notificationText += UpcomingSeries[i].Name
-                        + "\" (" + UpcomingSeries[i].NextEpisodeAirDate.ToString("HH:mm") + ")";
+                        + "\" (" + UpcomingSeries[i].NextEpisode.AirDate.ToString("HH:mm") + ")";
 
                     if (i == UpcomingSeries.Count - 2)
                     {

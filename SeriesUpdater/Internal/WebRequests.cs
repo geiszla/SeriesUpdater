@@ -18,14 +18,14 @@ namespace SeriesUpdater.Internal
 
             try
             {
-                string responseHTML;
+                string responseHtml;
                 using (WebResponse webResponse = webRequest.GetResponse())
                 using (StreamReader responseReader = new StreamReader(webResponse.GetResponseStream(), Encoding.UTF8))
                 {
-                    responseHTML = responseReader.ReadToEnd();
+                    responseHtml = responseReader.ReadToEnd();
                 }
 
-                return responseHTML;
+                return responseHtml;
             }
 
             catch
@@ -40,7 +40,7 @@ namespace SeriesUpdater.Internal
         {
             foreach (Series currSeries in Variables.SeriesList)
             {
-                Episode newLastEpisode = ProcessHTML.GetLatestAndNextEpisode(currSeries.ImdbId, false);
+                Episode newLastEpisode = ProcessHtml.GetEpisodes(currSeries.ImdbId, false)[0];
 
                 if (newLastEpisode != currSeries.LastEpisode)
                 {
@@ -62,10 +62,10 @@ namespace SeriesUpdater.Internal
             for (int i = 0; i < 10; i++)
             {
                 ResultSeries currResult = new ResultSeries();
-                string innerHTML = resultNodes[nodeNumber].InnerHtml;
+                string innerHtml = resultNodes[nodeNumber].InnerHtml;
 
                 Regex propertyRegex = new Regex("/tt([0-9]+).*>(.*)<.*\\(([0-9]+)\\).*\\((.*)\\)(?:.*>\"(.*)\"<)?");
-                GroupCollection propertyGroups = propertyRegex.Match(innerHTML).Groups;
+                GroupCollection propertyGroups = propertyRegex.Match(innerHtml).Groups;
 
                 if (propertyGroups[4].Value == "TV Movie" || propertyGroups[4].Value == "TV Short")
                 {
@@ -98,7 +98,7 @@ namespace SeriesUpdater.Internal
         public static string GetAirTimeByName(string Name)
         {
             string content = RequestPage("http://services.tvrage.com/feeds/fullschedule.php?country=US");
-            Tuple<string, int> showData = ProcessHTML.GetInnerHTMLByAttribute(Name, "name", content);
+            Tuple<string, int> showData = ProcessHtml.GetInnerHtmlByAttribute(Name, "name", content);
 
             if (showData == null) return default(DateTime).ToString("H:mm");
 

@@ -7,6 +7,7 @@ namespace SeriesUpdater
     {
         public int SeasonNumber;
         public int EpisodeNumber;
+        public DateTime AirDate;
 
         public Episode() { }
         public Episode(string EpisodeString)
@@ -45,6 +46,22 @@ namespace SeriesUpdater
             }
 
             return true;
+        }
+
+        public static bool IsLastAndNext(DateTime FirstAirDate, DateTime SecondAirDate, DateTime Now)
+        {
+            if (FirstAirDate.Year > Now.Year) return false;
+
+            int nowDayOfYear = Now.DayOfYear;
+            return FirstAirDate.DayOfYear < nowDayOfYear && FirstAirDate.DayOfYear >= nowDayOfYear;
+        }
+
+        public static bool IsNext(DateTime CurrAirDate, DateTime NextAirDate, DateTime Now)
+        {
+            if (CurrAirDate.Year < Now.Year) return false;
+
+            int nowDayOfYear = Now.DayOfYear;
+            return CurrAirDate.DayOfYear >= nowDayOfYear && NextAirDate.DayOfYear >= nowDayOfYear;
         }
     }
 }

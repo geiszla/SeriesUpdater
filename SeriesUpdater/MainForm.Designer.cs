@@ -33,7 +33,7 @@
             this.seriesTitleLabel = new System.Windows.Forms.Label();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.notifyIconContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.imdbLanguageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.displayLanguageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.defaultLanguageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.customLanguageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sendNotificationsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -57,34 +57,34 @@
             // notifyIcon
             // 
             this.notifyIcon.BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Info;
-            this.notifyIcon.BalloonTipText = "Frissítés folyamatban. A frissítés alatt nem tudod megnyitni a programot.";
-            this.notifyIcon.BalloonTipTitle = "Frissítés";
+            this.notifyIcon.BalloonTipText = "Update is in progress. Please wait for the process to finish.";
+            this.notifyIcon.BalloonTipTitle = "Updating Series...";
             this.notifyIcon.ContextMenuStrip = this.notifyIconContextMenu;
             this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
-            this.notifyIcon.Text = "Sorozat figyelő";
+            this.notifyIcon.Text = "Series Updater";
             this.notifyIcon.Visible = true;
             // 
             // notifyIconContextMenu
             // 
             this.notifyIconContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.imdbLanguageToolStripMenuItem,
+            this.displayLanguageToolStripMenuItem,
             this.sendNotificationsToolStripMenuItem,
             this.RunOnStartupToolStripMenuItem,
             this.toolStripSeparator1,
             this.exitToolStripMenuItem});
             this.notifyIconContextMenu.Name = "notifyIconControlManagementMenu";
-            this.notifyIconContextMenu.Size = new System.Drawing.Size(222, 98);
+            this.notifyIconContextMenu.Size = new System.Drawing.Size(172, 98);
             this.notifyIconContextMenu.MouseUp += new System.Windows.Forms.MouseEventHandler(this.notifyIconControlManagementMenu_MouseUp);
             // 
-            // imdbLanguageToolStripMenuItem
+            // displayLanguageToolStripMenuItem
             // 
-            this.imdbLanguageToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.displayLanguageToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.defaultLanguageToolStripMenuItem,
             this.customLanguageToolStripMenuItem});
-            this.imdbLanguageToolStripMenuItem.Enabled = false;
-            this.imdbLanguageToolStripMenuItem.Name = "imdbLanguageToolStripMenuItem";
-            this.imdbLanguageToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
-            this.imdbLanguageToolStripMenuItem.Text = "IMDB Nyelv";
+            this.displayLanguageToolStripMenuItem.Enabled = false;
+            this.displayLanguageToolStripMenuItem.Name = "displayLanguageToolStripMenuItem";
+            this.displayLanguageToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.displayLanguageToolStripMenuItem.Text = "Display Language";
             // 
             // defaultLanguageToolStripMenuItem
             // 
@@ -92,14 +92,14 @@
             this.defaultLanguageToolStripMenuItem.CheckOnClick = true;
             this.defaultLanguageToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.defaultLanguageToolStripMenuItem.Name = "defaultLanguageToolStripMenuItem";
-            this.defaultLanguageToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
-            this.defaultLanguageToolStripMenuItem.Text = "Alapértelmezett";
+            this.defaultLanguageToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.defaultLanguageToolStripMenuItem.Text = "Default";
             // 
             // customLanguageToolStripMenuItem
             // 
             this.customLanguageToolStripMenuItem.Name = "customLanguageToolStripMenuItem";
-            this.customLanguageToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
-            this.customLanguageToolStripMenuItem.Text = "Saját";
+            this.customLanguageToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.customLanguageToolStripMenuItem.Text = "Custom";
             this.customLanguageToolStripMenuItem.Click += new System.EventHandler(this.customLanguageToolStripMenuItem_Click);
             // 
             // sendNotificationsToolStripMenuItem
@@ -108,27 +108,27 @@
             this.sendNotificationsToolStripMenuItem.CheckOnClick = true;
             this.sendNotificationsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.sendNotificationsToolStripMenuItem.Name = "sendNotificationsToolStripMenuItem";
-            this.sendNotificationsToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
-            this.sendNotificationsToolStripMenuItem.Text = "Értesítések küldése";
+            this.sendNotificationsToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.sendNotificationsToolStripMenuItem.Text = "Send Notifications";
             this.sendNotificationsToolStripMenuItem.Click += new System.EventHandler(this.notificationContextMenuItem_Click);
             // 
             // RunOnStartupToolStripMenuItem
             // 
             this.RunOnStartupToolStripMenuItem.Name = "RunOnStartupToolStripMenuItem";
-            this.RunOnStartupToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
-            this.RunOnStartupToolStripMenuItem.Text = "Indítás a Windowszal együtt";
+            this.RunOnStartupToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.RunOnStartupToolStripMenuItem.Text = "Run On Startup";
             this.RunOnStartupToolStripMenuItem.Click += new System.EventHandler(this.autorunStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(218, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(168, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(221, 22);
-            this.exitToolStripMenuItem.Text = "Kilépés";
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // addButton
@@ -141,20 +141,20 @@
             this.addButton.UseVisualStyleBackColor = true;
             this.addButton.Click += new System.EventHandler(this.addButton_Click);
             // 
-            // Form1
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(116, 40);
+            this.ClientSize = new System.Drawing.Size(120, 40);
             this.ControlBox = false;
             this.Controls.Add(this.addButton);
             this.Controls.Add(this.seriesTitleLabel);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.Location = new System.Drawing.Point(15, 47);
-            this.Name = "Form1";
+            this.Name = "MainForm";
             this.Padding = new System.Windows.Forms.Padding(0, 0, 5, 5);
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
@@ -179,7 +179,7 @@
         private System.Windows.Forms.ToolStripMenuItem RunOnStartupToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem sendNotificationsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem imdbLanguageToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem displayLanguageToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem defaultLanguageToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem customLanguageToolStripMenuItem;
     }

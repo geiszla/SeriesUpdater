@@ -233,7 +233,7 @@ namespace SeriesUpdater
             if (Internal.Variables.SeriesList.Count > 0)
             {
                 string text = "Series Updater is updating information about your series. Please wait until the process finishes.";
-                Context.Notifications.ShowNotification(text, "Updating...", 3000);
+                Context.Notifications.ShowNotification(text, "Updating Series...", 3000);
             }
 
             else

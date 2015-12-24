@@ -50,7 +50,7 @@ namespace SeriesUpdater
             Variables.SelectedSeries = new Series(name, imdbId, new Episode(), new Episode(), new DateTime(), 3);
 
             string id = resultTable.SelectedRows[0].Cells[0].Value.ToString();            
-            Variables.SelectedSeries.LastEpisode = Internal.ProcessHTML.GetLatestAndNextEpisode(id, true);
+            Variables.SelectedSeries.LastEpisode = ProcessHtml.GetEpisodes(id, true)[0];
 
             if (Variables.SelectedSeries.LastEpisode.SeasonNumber != 0)
             {

@@ -1,177 +1,190 @@
-﻿using SeriesUpdater.Context;
+﻿using HtmlAgilityPack;
+using SeriesUpdater.Context;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
 
 namespace SeriesUpdater.Internal
 {
-    class ProcessHTML
+    class ProcessHtml
     {
-        public static Tuple<string, int> GetInnerHTMLByAttribute(string AttributeValue, string Attribute,
-            string HTMLText, int SearchStartIndex = 0)
+        #region Regex
+        public static Tuple<string, int> GetInnerHtmlByAttribute(string AttributeValue, string Attribute,
+            string HtmlText, int SearchStartIndex = 0)
         {
             // Get tag name
             string regexString = @"<([a-z0-9]+) " + Attribute + "=\"" + AttributeValue;
             Regex tagRegex = new Regex(regexString);
 
-            Match tagMatch = tagRegex.Match(HTMLText, SearchStartIndex);
+            Match tagMatch = tagRegex.Match(HtmlText, SearchStartIndex);
             if (!tagMatch.Success) return null;
 
             string tagName = tagMatch.Groups[1].Value;
             int tagIndex = tagMatch.Index;
 
             // Get inner HTML by tag name
-            int startIndex = HTMLText.IndexOf('>', tagIndex) + 1;
-            int endIndex = HTMLText.IndexOf("</" + tagName, startIndex);
+            int startIndex = HtmlText.IndexOf('>', tagIndex) + 1;
+            int endIndex = HtmlText.IndexOf("</" + tagName, startIndex);
 
-            string innerHTML = HTMLText.Substring(startIndex, endIndex - startIndex);
+            string innerHtml = HtmlText.Substring(startIndex, endIndex - startIndex);
 
-            return new Tuple<string, int>(innerHTML, endIndex + tagName.Length + 2);
+            return new Tuple<string, int>(innerHtml, endIndex + tagName.Length + 2);
         }
 
-        public static Episode GetEpisodeByDateIndex(int DateIndex, string HTMLText)
+        public static string GetNameFromHtml(string HtmlText)
         {
-            Regex episodeRegex = new Regex("<div>(S[^<]*)", RegexOptions.RightToLeft);
-            string episodeString = episodeRegex.Match(HTMLText, DateIndex).Groups[1].Value;
-            
-            return new Episode(episodeString);
-        }
+            string innerHtml = GetInnerHtmlByAttribute("parent", "class", HtmlText).Item1;
 
-        public static string GetNameFromHTML(string HTMLText)
-        {
-            string innerHTML = GetInnerHTMLByAttribute("parent", "class", HTMLText).Item1;
-
-            Match match = Regex.Match(innerHTML, "\'url\'>(.*)</a>", RegexOptions.IgnoreCase);
+            Match match = Regex.Match(innerHtml, "\'url\'>(.*)</a>", RegexOptions.IgnoreCase);
             string name = match.Groups[1].Value;
 
             return name;
         }
+        #endregion
 
-        public static Episode GetLatestAndNextEpisode(string ImdbId, bool IsAdd)
+        #region Html Agility Pack
+        public static Episode[] GetEpisodes(string ImdbId, bool IsAdd)
         {
             string url = "http://www.imdb.com/title/" + "tt" + ImdbId + "/episodes";
-            string HTMLText = WebRequests.RequestPage(url);
-
-            return GetEpisodesFromHTML(ImdbId, HTMLText, IsAdd);
+            string htmlText = WebRequests.RequestPage(url);
+            
+            return GetEpisodesFromHtml(ImdbId, htmlText, IsAdd);
         }
 
-        public static Episode GetEpisodesFromHTML(string imdbId, string HTMLText, bool isAdd,
-            DateTime currNextAirDate = new DateTime(), int currNextDateIndex = 0)
+        public static Episode[] GetEpisodesFromHtml(string imdbId, string HtmlText, bool isAdd)
         {
-            if (HTMLText == "") return null;
+            if (HtmlText == "") return null;
+            Tuple<DateTime, int, HtmlNode>[] airDateTuples = getAirDates(imdbId, HtmlText);
+            Episode lastEpisode = getEpisodeNumberByAirDate(airDateTuples[0]);
 
-            // Get season number
-            string seasonName = GetInnerHTMLByAttribute("episode_top", "id", HTMLText).Item1;
-            if (seasonName == null)
+            if (airDateTuples[1].Item1 == default(DateTime))
             {
-                Notifications.ShowError("This series doesn't have any episodes. Please choose another one.",
-                    "Invalid series");
-                return null;
+                string url = "http://www.imdb.com/title/" + "tt" + imdbId + "/episodes?season=" + lastEpisode.SeasonNumber;
+                string htmlText = WebRequests.RequestPage(url);
+
+                airDateTuples = getAirDates(imdbId, htmlText, true);
             }
 
-            // Get latest episode
-            DateTime latestAirDate = new DateTime();
-            int latestDateIndex = 0;
-
-            DateTime nextAirDate = currNextAirDate;
-            int nextDateIndex = currNextDateIndex;
-
-            int startIndex = 0;
-            int dateKnown = 3;
-            Tuple<string, int> innerHTMLTuple;
-            while ((innerHTMLTuple = GetInnerHTMLByAttribute("airdate", "class", HTMLText, startIndex)) != null)
+            Episode nextEpisode = getEpisodeNumberByAirDate(airDateTuples[1]);
+            
+            Series currSeries = Variables.SeriesList.Where(x => x.ImdbId == imdbId).FirstOrDefault();
+            if (isAdd)
             {
-                if (innerHTMLTuple.Item1.Trim() == "") continue;
+                Variables.SelectedSeries.NextEpisode = nextEpisode;
+                Variables.SelectedSeries.DateKnown = airDateTuples[1].Item2;
+            }
 
-                DateTime currAirDate;
-                try
-                {
-                    currAirDate = Convert.ToDateTime(innerHTMLTuple.Item1);
-                }
+            else if (currSeries != null)
+            {
+                currSeries.LastEpisode = lastEpisode;
+                currSeries.NextEpisode = nextEpisode;
+                currSeries.DateKnown = airDateTuples[1].Item2;
+            }
 
-                catch
-                {
-                    currAirDate = Convert.ToDateTime(innerHTMLTuple.Item1.Split('\n')[1] + ".12.31");
-                    dateKnown = 1;
-                }
+            return new Episode[] { lastEpisode, nextEpisode  };
+        }
 
-                if (currAirDate < DateTime.Now)
-                {
-                    latestAirDate = currAirDate;
-                    latestDateIndex = innerHTMLTuple.Item2;
-                }
+        static Tuple<DateTime, int, HtmlNode>[] getAirDates(string imdbId, string htmlText, bool isNextOnly = false)
+        {
+            HtmlDocument htmlDocument = new HtmlDocument();
+            htmlDocument.LoadHtml(htmlText);
 
-                else if (nextAirDate == null || currAirDate < nextAirDate)
+            HtmlNodeCollection resultNodes = htmlDocument.DocumentNode
+                .SelectNodes("//*[contains(concat(' ', normalize-space(@class), ' '), ' airdate ')]");
+
+            // [0] = last episode, [1] = next episode
+            int[] dateKnowns = new int[2];
+            int[] nodeIndexes = new int[2];
+            DateTime[] airDates = new DateTime[2];
+
+            Tuple<DateTime, int> previousDateTuple = parseDate(resultNodes[0].InnerHtml);
+            for (int i = 1; i < resultNodes.Count; i++)
+            {
+                DateTime previousAirDate = previousDateTuple.Item1;
+
+                Tuple<DateTime, int> currDateTuple = parseDate(resultNodes[i].InnerHtml);
+                DateTime currAirDate = currDateTuple.Item1;
+                int dateKnown = currDateTuple.Item2;
+
+                DateTime now = DateTime.Now;
+                if (Episode.IsNext(previousAirDate, currAirDate, now))
                 {
-                    nextAirDate = currAirDate;
-                    nextDateIndex = innerHTMLTuple.Item2;
+                    airDates[1] = previousAirDate;
+                    nodeIndexes[1] = i;
+                    dateKnowns[1] = dateKnown;
                     break;
                 }
 
-                startIndex = GetInnerHTMLByAttribute("airdate", "class", HTMLText, startIndex).Item2;
-            }
-
-            // Change next air date
-            if (nextAirDate != default(DateTime))
-            {
-                if (currNextAirDate != nextAirDate)
+                if (!isNextOnly)
                 {
-                    Episode nextEpisode = GetEpisodeByDateIndex(nextDateIndex, HTMLText);
-
-                    if (isAdd)
+                    if (Episode.IsLastAndNext(previousAirDate, currAirDate, now))
                     {
-                        Variables.SelectedSeries.NextEpisodeAirDate = nextAirDate;
-                        Variables.SelectedSeries.DateKnown = dateKnown;
-                        Variables.SelectedSeries.NextEpisode = nextEpisode;
+                        airDates[0] = previousAirDate;
+                        nodeIndexes[0] = i - 1;
+                        dateKnowns[0] = dateKnown;
+
+                        airDates[1] = currAirDate;
+                        nodeIndexes[1] = i;
+                        dateKnowns[1] = dateKnown;
+                        break;
                     }
 
-                    else
+                    else if (i == resultNodes.Count - 1)
                     {
-                        Series currSeries = Variables.SeriesList.Where(x => x.ImdbId == imdbId).FirstOrDefault();
-
-                        currSeries.NextEpisodeAirDate = nextAirDate;
-                        currSeries.DateKnown = dateKnown;
-                        currSeries.NextEpisode = nextEpisode;
+                        airDates[0] = currAirDate;
+                        nodeIndexes[0] = i - 1;
+                        dateKnowns[0] = dateKnown;
                     }
                 }
 
-                currNextAirDate = nextAirDate;
-                currNextDateIndex = nextDateIndex;
+                previousDateTuple = currDateTuple;
             }
 
-            // Return latest air date
-            if (latestAirDate == default(DateTime))
-            {
-                Regex seasonRegex = new Regex("Season&nbsp;([0-9]+)");
-                string previousSeasonNumber = Convert.ToString(Convert.ToInt32(seasonRegex.Match(seasonName).Groups[1].Value) - 1);
+            Tuple<DateTime, int, HtmlNode> lastEpisodeTuple = new Tuple<DateTime, int, HtmlNode>(airDates[0], dateKnowns[0], resultNodes[nodeIndexes[0]]);
+            Tuple<DateTime, int, HtmlNode> nextEpisodeTuple = new Tuple<DateTime, int, HtmlNode>(airDates[1], dateKnowns[1], resultNodes[nodeIndexes[1]]);
 
-                string url = "http://www.imdb.com/title/" + "tt" + imdbId + "/episodes" + previousSeasonNumber;
-                return GetEpisodesFromHTML(imdbId, WebRequests.RequestPage(url), isAdd, currNextAirDate, currNextDateIndex);
-            }
-
-            else
-            {
-                /*
-                for (int i = 0; i < MainProgram.Variables.seriesList.Count; i++)
-                {
-                    if (MainProgram.Variables.seriesList[i].imdbId == id)
-                    {
-                        string name = MainProgram.WebRequest.getNameById(MainProgram.Variables.seriesList[i].imdbId);
-                        string dateTime = MainProgram.WebRequest.getAirTimeByName(name);
-
-                        if (Convert.ToDateTime(dateTime) != default(DateTime))
-                        {
-                            TimeSpan time = TimeSpan.Parse(dateTime);
-                            MainProgram.Variables.seriesList[i].nextEpisodeAirDate += time;
-                            MainProgram.Variables.seriesList[i].dateKnown = 6;
-                        }
-                    }
-                }
-                 */
-
-                return GetEpisodeByDateIndex(latestDateIndex, HTMLText);
-            }
+            return new Tuple<DateTime, int, HtmlNode>[] { lastEpisodeTuple, nextEpisodeTuple };
         }
+
+        static Episode getEpisodeNumberByAirDate(Tuple<DateTime, int, HtmlNode> airDateTuple)
+        {
+            HtmlNodeCollection episodeNodes = airDateTuple.Item3.SelectNodes("ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' list_item ')]//*[contains(concat(' ', normalize-space(@class), ' '), ' hover-over-image ')]");
+            if (episodeNodes.Count == 0) return new Episode();
+
+            Episode currEpisode = new Episode();
+            foreach (HtmlNode currEpisodeNode in episodeNodes)
+            {
+                string currEpisodeString = currEpisodeNode.InnerHtml;
+                if (Episode.IsValidEpisodeString(currEpisodeString))
+                {
+                    currEpisode = new Episode(currEpisodeString);
+                    currEpisode.AirDate = airDateTuple.Item1;
+                }
+            }
+
+            return currEpisode;
+        }
+        #endregion
+
+        #region Helper Functions
+        static Tuple<DateTime, int> parseDate(string innerHtml)
+        {
+            DateTime airDate;
+            int dateKnown;
+            try
+            {
+                airDate = Convert.ToDateTime(innerHtml);
+                dateKnown = 3;
+            }
+
+            catch
+            {
+                airDate = Convert.ToDateTime(innerHtml.Split('\n')[1] + ".12.31");
+                dateKnown = 1;
+            }
+
+            return new Tuple<DateTime, int>(airDate, dateKnown);
+        }
+        #endregion
     }
 }
